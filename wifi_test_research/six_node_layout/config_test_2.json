@@ -1,0 +1,29 @@
+{
+  "network_topology": {
+    "num_nodes": 4,
+    "grid_width": 0,
+    "node_spacing_meters": 150
+  },
+  "traffic_configuration": {
+    "packet_size_bytes": 1400,
+    "num_sta_nodes": 1
+  },
+  "mesh_configuration": {
+    "config_id": 1
+  },
+  "ip_configuration": {
+    "source_ip": "192.168.1.2",
+    "destination_ip": "8.8.8.2"
+  },
+  "port_information": {
+    "tcp_port": 80,
+    "udp_port": 9,
+    "note": "UDP disabled - only TCP traffic generated"
+  },
+  "output_files": {
+    "xml_file": "wifi_test_research/six_node_layout/wifi-test-2-adhoc-grid-six.xml",
+    "tr_file": "wifi_test_research/six_node_layout/wifi-test-2-adhoc-grid-six.tr",
+    "sta_tr_file": "wifi_test_research/six_node_layout/wifi-test-2-sta-six.tr",
+    "flowmon_file": "wifi_test_research/six_node_layout/wifi-test-2-adhoc-grid-six-flowmon.xml"
+  }
+}
