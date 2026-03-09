@@ -190,8 +190,10 @@ struct LteHybridConfig
     Ptr<LteHelper> lteHelper;
     Ptr<PointToPointEpcHelper> epcHelper;
     Ipv4InterfaceContainer ueIfaces;
-    Ptr<Node> remoteHost;
-    Ipv4Address remoteHostIp;
+    // LTE gateway on UE side (from EPC)
+    Ipv4Address ueGateway;
+    // Service destination IP (same as WiFi server IP)
+    Ipv4Address serviceIp;
 };
 
 namespace
@@ -239,6 +241,8 @@ struct HybridControllerContext
 HybridControllerContext g_hybridContext;
 std::ofstream g_rssiLog;
 bool g_rssiLogOpen{false};
+std::ofstream g_switchLog;
+bool g_switchLogOpen{false};
 
 void
 RemoveExistingHostRoute(Ptr<Ipv4StaticRouting> routing, const Ipv4Address& destination)
@@ -795,7 +799,10 @@ HotspotConfig SetupHotspotInfrastructure(NodeContainer meshNodes,
 // This sets up LTE/EPC and assigns LTE IPv4 addresses to each UE. It also
 // creates a remote host behind the PGW for LTE-only traffic and installs
 // per-UE host routes for that destination only (WiFi remains default).
-LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes, double fieldSize)
+LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes,
+                                      Ptr<Node> ispRouter,
+                                      Ipv4Address serviceIp,
+                                      double fieldSize)
 {
     NS_LOG_FUNCTION("Setting up LTE overlay for " << ueNodes.GetN() << " UEs");
 
@@ -836,22 +843,17 @@ LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes, double field
     // Assign LTE IPv4 addresses to the LTE interfaces on each UE.
     cfg.ueIfaces = cfg.epcHelper->AssignUeIpv4Address(cfg.ueDevices);
 
-    // Create a remote host behind the PGW, similar to 4G_simulation_file.cc
-    InternetStackHelper internet;
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+    // Attach all UEs to the single eNB (no handover in this topology)
+    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
+    {
+        cfg.lteHelper->Attach(cfg.ueDevices.Get(i), cfg.enbDevices.Get(0));
+    }
 
+    cfg.ueGateway = cfg.epcHelper->GetUeDefaultGatewayAddress();
+    cfg.serviceIp = serviceIp;
+
+    // Connect PGW to the existing ISP router, so LTE UEs can reach the same service IP.
     Ptr<Node> pgw = cfg.epcHelper->GetPgwNode();
-    cfg.remoteHost = CreateObject<Node>();
-    NodeContainer remoteHostContainer(cfg.remoteHost);
-    internet.Install(remoteHostContainer);
-
-    // Place remote host just "outside" the playfield
-    MobilityHelper remoteMobility;
-    Ptr<ListPositionAllocator> remotePos = CreateObject<ListPositionAllocator>();
-    remotePos->Add(Vector(fieldSize * 0.5, fieldSize + 50.0, 0.0));
-    remoteMobility.SetPositionAllocator(remotePos);
-    remoteMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    remoteMobility.Install(remoteHostContainer);
 
     // Add simple mobility to PGW to avoid warnings
     NodeContainer epcCore;
@@ -863,36 +865,40 @@ LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes, double field
     epcMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     epcMobility.Install(epcCore);
 
-    // High-capacity P2P link between PGW and remote host
     PointToPointHelper p2p;
     p2p.SetDeviceAttribute("DataRate", StringValue("100Gbps"));
     p2p.SetChannelAttribute("Delay", StringValue("1ms"));
-    NetDeviceContainer internetDevices = p2p.Install(pgw, cfg.remoteHost);
+    NetDeviceContainer pgwIspDevices = p2p.Install(pgw, ispRouter);
 
-    Ipv4AddressHelper ipv4h;
-    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
-    Ipv4InterfaceContainer interfaces = ipv4h.Assign(internetDevices);
-    // index 1 is the remote host
-    cfg.remoteHostIp = interfaces.GetAddress(1);
+    // Address the PGW<->ISP link
+    Ipv4AddressHelper p2pAddr;
+    p2pAddr.SetBase("1.0.0.0", "255.0.0.0");
+    Ipv4InterfaceContainer pgwIspIf = p2pAddr.Assign(pgwIspDevices);
+    Ipv4Address pgwP2pIp = pgwIspIf.GetAddress(0);
+    Ipv4Address ispP2pIp = pgwIspIf.GetAddress(1);
 
-    // Remote host default route via PGW
-    Ptr<Ipv4StaticRouting> remoteRouting =
-        ipv4RoutingHelper.GetStaticRouting(cfg.remoteHost->GetObject<Ipv4>());
-    remoteRouting->SetDefaultRoute(cfg.epcHelper->GetUeDefaultGatewayAddress(), 1);
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
 
-    // For each UE, add a host route to the LTE remote host via the LTE interface
-    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
+    // ISP router route back to LTE UE subnet (EPC defaults to 7.0.0.0/8)
     {
-        Ptr<Node> ue = ueNodes.Get(i);
-        Ptr<Ipv4> ipv4 = ue->GetObject<Ipv4>();
-        Ptr<Ipv4StaticRouting> ueRouting = ipv4RoutingHelper.GetStaticRouting(ipv4);
+        Ptr<Ipv4StaticRouting> ispRouting =
+            ipv4RoutingHelper.GetStaticRouting(ispRouter->GetObject<Ipv4>());
+        uint32_t ispIf = ispRouter->GetObject<Ipv4>()->GetInterfaceForDevice(pgwIspDevices.Get(1));
+        ispRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"),
+                                      Ipv4Mask("255.0.0.0"),
+                                      pgwP2pIp,
+                                      ispIf);
+    }
 
-        Ptr<NetDevice> lteDev = cfg.ueDevices.Get(i);
-        uint32_t lteIfIndex = ipv4->GetInterfaceForDevice(lteDev);
-
-        ueRouting->AddHostRouteTo(cfg.remoteHostIp,
-                                  cfg.epcHelper->GetUeDefaultGatewayAddress(),
-                                  lteIfIndex);
+    // PGW route to the service network (8.8.8.0/24) via ISP router
+    {
+        Ptr<Ipv4StaticRouting> pgwRouting =
+            ipv4RoutingHelper.GetStaticRouting(pgw->GetObject<Ipv4>());
+        uint32_t pgwIf = pgw->GetObject<Ipv4>()->GetInterfaceForDevice(pgwIspDevices.Get(0));
+        pgwRouting->AddNetworkRouteTo(Ipv4Address("8.8.8.0"),
+                                      Ipv4Mask("255.255.255.0"),
+                                      ispP2pIp,
+                                      pgwIf);
     }
 
     return cfg;
@@ -1090,27 +1096,28 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
     }
 }
 
-// Simple LTE-side traffic: one TCP BulkSend per UE to the LTE remote host.
+// LTE-side traffic: one TCP BulkSend per UE to the same service IP as WiFi.
 void SetupLteApplications(const LteHybridConfig& lteConfig,
                           const HotspotConfig& hotspotConfig,
+                          Ptr<Node> serviceNode,
                           double simTime,
                           uint32_t packetSize,
                           uint32_t uploadBytes)
 {
-    if (!lteConfig.remoteHost || hotspotConfig.staNodes.GetN() == 0)
+    if (!serviceNode || hotspotConfig.staNodes.GetN() == 0)
     {
         return;
     }
 
-    NS_LOG_FUNCTION("Setting up LTE applications to remote host " << lteConfig.remoteHostIp);
+    NS_LOG_FUNCTION("Setting up LTE applications to service " << lteConfig.serviceIp);
 
     const uint16_t lteUploadPortBase = 52000;
 
     ApplicationContainer serverApps;
-    // One sink on the LTE remote host for all UE uploads
+    // One sink on the service node for all UE LTE uploads
     PacketSinkHelper lteSink("ns3::TcpSocketFactory",
                              InetSocketAddress(Ipv4Address::GetAny(), lteUploadPortBase));
-    serverApps.Add(lteSink.Install(lteConfig.remoteHost));
+    serverApps.Add(lteSink.Install(serviceNode));
     serverApps.Start(Seconds(0.5));
     serverApps.Stop(Seconds(simTime));
 
@@ -1118,7 +1125,7 @@ void SetupLteApplications(const LteHybridConfig& lteConfig,
     for (uint32_t i = 0; i < hotspotConfig.staNodes.GetN(); ++i)
     {
         BulkSendHelper lteUpload("ns3::TcpSocketFactory",
-                                 InetSocketAddress(lteConfig.remoteHostIp, lteUploadPortBase));
+                                 InetSocketAddress(lteConfig.serviceIp, lteUploadPortBase));
         lteUpload.SetAttribute("MaxBytes", UintegerValue(uploadBytes));
         lteUpload.SetAttribute("SendSize", UintegerValue(packetSize));
 
@@ -1344,6 +1351,118 @@ void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaN
     }
 }
 
+static void
+SwitchUeToLte(uint32_t staIndex,
+              const HotspotConfig& hotspotConfig,
+              const LteHybridConfig& lteConfig)
+{
+    if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
+    {
+        return;
+    }
+
+    Ptr<Node> ue = hotspotConfig.staNodes.Get(staIndex);
+    Ptr<Ipv4> ipv4 = ue->GetObject<Ipv4>();
+    Ipv4StaticRoutingHelper helper;
+    Ptr<Ipv4StaticRouting> rt = helper.GetStaticRouting(ipv4);
+
+    Ptr<NetDevice> lteDev = lteConfig.ueDevices.Get(staIndex);
+    uint32_t lteIf = ipv4->GetInterfaceForDevice(lteDev);
+
+    RemoveExistingHostRoute(rt, lteConfig.serviceIp);
+    rt->AddHostRouteTo(lteConfig.serviceIp, lteConfig.ueGateway, lteIf);
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    st.currentPath = USE_LTE;
+    st.lastSwitch = Simulator::Now();
+
+    if (g_switchLogOpen)
+    {
+        g_switchLog << Simulator::Now().GetSeconds() << ","
+                    << staIndex << ","
+                    << "wifi,lte,"
+                    << st.rssiAvgDbm << ","
+                    << lteConfig.serviceIp << "\n";
+    }
+}
+
+static void
+SwitchUeToWifi(uint32_t staIndex,
+               const HotspotConfig& hotspotConfig,
+               const LteHybridConfig& lteConfig)
+{
+    if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
+    {
+        return;
+    }
+
+    Ptr<Node> ue = hotspotConfig.staNodes.Get(staIndex);
+    Ptr<Ipv4> ipv4 = ue->GetObject<Ipv4>();
+    Ipv4StaticRoutingHelper helper;
+    Ptr<Ipv4StaticRouting> rt = helper.GetStaticRouting(ipv4);
+
+    // Remove LTE host route to the service, fall back to existing WiFi routing
+    RemoveExistingHostRoute(rt, lteConfig.serviceIp);
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    st.currentPath = USE_WIFI;
+    st.lastSwitch = Simulator::Now();
+
+    if (g_switchLogOpen)
+    {
+        g_switchLog << Simulator::Now().GetSeconds() << ","
+                    << staIndex << ","
+                    << "lte,wifi,"
+                    << st.rssiAvgDbm << ","
+                    << lteConfig.serviceIp << "\n";
+    }
+}
+
+static void
+CheckHybridSwitching(const HotspotConfig& hotspotConfig,
+                     const LteHybridConfig& lteConfig,
+                     Time interval,
+                     double rssiThresholdDbm,
+                     double rssiHysteresisDb)
+{
+    if (!g_hybridContext.enabled)
+    {
+        return;
+    }
+
+    for (uint32_t i = 0; i < hotspotConfig.staNodes.GetN(); ++i)
+    {
+        HybridUeState& st = g_hybridContext.ueStates[i];
+        if (!st.rssiInitialized)
+        {
+            continue;
+        }
+
+        if (Simulator::Now() - st.lastSwitch < g_hybridContext.minSwitchInterval)
+        {
+            continue;
+        }
+
+        if (st.currentPath == USE_WIFI)
+        {
+            if (st.rssiAvgDbm < rssiThresholdDbm)
+            {
+                SwitchUeToLte(i, hotspotConfig, lteConfig);
+            }
+        }
+        else
+        {
+            if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
+            {
+                SwitchUeToWifi(i, hotspotConfig, lteConfig);
+            }
+        }
+    }
+
+    Simulator::Schedule(interval, &CheckHybridSwitching,
+                        hotspotConfig, lteConfig, interval, rssiThresholdDbm, rssiHysteresisDb);
+}
+
 int main(int argc, char* argv[])
 {
     // Enable packet metadata for NetAnim
@@ -1375,6 +1494,10 @@ int main(int argc, char* argv[])
     // Root output directory for Wi-Fi hybrid runs (in repo root)
     std::string outputDir = "Wifi_hybrid_outputs";
     double flowScale = 1.0;
+    bool enableSwitching = true;
+    double rssiThresholdDbm = -80.0;
+    double rssiHysteresisDb = 3.0;
+    double switchIntervalSec = 0.5;
 
     CommandLine cmd;
     cmd.AddValue("nNodes", "Number of mesh nodes", nNodes);
@@ -1397,6 +1520,10 @@ int main(int argc, char* argv[])
     cmd.AddValue("flowScale",
                  "Multiplier applied to upload/download byte budgets (1=1MB default)", flowScale);
     cmd.AddValue("rngSeed", "RNG seed for reproducible runs", rngSeed);
+    cmd.AddValue("enableSwitching", "Enable RSSI-based WiFi<->LTE switching for service traffic", enableSwitching);
+    cmd.AddValue("rssiThresholdDbm", "WiFi RSSI threshold (dBm) below which to switch to LTE", rssiThresholdDbm);
+    cmd.AddValue("rssiHysteresisDb", "RSSI hysteresis (dB) above threshold to switch back to WiFi", rssiHysteresisDb);
+    cmd.AddValue("switchIntervalSec", "Switch controller interval (seconds)", switchIntervalSec);
     cmd.Parse(argc, argv);
 
     RngSeedManager::SetSeed(rngSeed);
@@ -1488,6 +1615,8 @@ int main(int argc, char* argv[])
         g_hybridContext.enabled = true;
         g_hybridContext.ueStates.assign(hotspotConfig.staNodes.GetN(), HybridUeState{});
         g_hybridContext.nodeIdToStaIndex = &hotspotConfig.nodeIdToStaIndex;
+        g_hybridContext.rssiThresholdDbm = rssiThresholdDbm;
+        g_hybridContext.minSwitchInterval = Seconds(2.0);
 
         // Open RSSI log file in the chosen output directory
         std::string rssiLogPath = outputDir + "/wifi-hybrid-rssi_log.csv";
@@ -1503,9 +1632,25 @@ int main(int argc, char* argv[])
             std::cerr << "Warning: could not open RSSI log file " << rssiLogPath << std::endl;
         }
 
-        NS_LOG_UNCOND("Hybrid controller enabled for " << hotspotConfig.staNodes.GetN()
-                         << " STA UEs; RSSI threshold = "
-                         << g_hybridContext.rssiThresholdDbm << " dBm");
+        // Open switch event log
+        std::string switchLogPath = outputDir + "/wifi-hybrid-switch_log.csv";
+        g_switchLog.open(switchLogPath, std::ios::out | std::ios::trunc);
+        if (g_switchLog.is_open())
+        {
+            g_switchLogOpen = true;
+            g_switchLog << "time_s,sta_index,from,to,rssi_avg_dbm,service_ip\n";
+            std::cout << "Hybrid switch log will be written to " << switchLogPath << std::endl;
+        }
+        else
+        {
+            std::cerr << "Warning: could not open switch log file " << switchLogPath << std::endl;
+        }
+
+        std::cout << "Hybrid RSSI switching is " << (enableSwitching ? "ENABLED" : "DISABLED")
+                  << " (threshold=" << rssiThresholdDbm << " dBm"
+                  << ", hysteresis=" << rssiHysteresisDb << " dB"
+                  << ", interval=" << switchIntervalSec << " s)"
+                  << std::endl;
 
         // Connect WiFi RSSI trace for hybrid quality monitoring
         Config::Connect("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/MonitorSnifferRx",
@@ -1517,7 +1662,12 @@ int main(int argc, char* argv[])
     if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
         // Field size is 400 x 400 m as per project objective
-        lteConfig = SetupLteHybridOverlay(hotspotConfig.staNodes, 400.0);
+        // Service IP is the WiFi-side internet server address (8.8.8.x)
+        Ipv4Address serviceIp = internetConfig.internetInterfaces.GetAddress(1);
+        lteConfig = SetupLteHybridOverlay(hotspotConfig.staNodes,
+                                          internetConfig.internetNodes.Get(0),
+                                          serviceIp,
+                                          400.0);
     }
 
     ConfigureIPForwarding(meshNetConfig.meshNodes, internetConfig.internetNodes);
@@ -1536,16 +1686,27 @@ int main(int argc, char* argv[])
                       downloadBytes,
                       voipBytes);
 
-    // LTE-side traffic: additional TCP uploads over LTE to the LTE remote host.
-    // For now this always-on LTE traffic coexists with WiFi; future steps will
-    // selectively enable/disable or reroute flows based on RSSI/PDR.
-    if (lteConfig.remoteHost)
+    // LTE-side traffic: additional TCP uploads over LTE to the same service node as WiFi.
+    if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
         SetupLteApplications(lteConfig,
                              hotspotConfig,
+                             internetConfig.internetNodes.Get(1),
                              simTime,
                              packetSize,
                              uploadBytes);
+    }
+
+    // Start periodic RSSI-based switching after initial association/traffic startup.
+    if (enableSwitching && enableHotspot && hotspotConfig.staNodes.GetN() > 0)
+    {
+        Simulator::Schedule(Seconds(5.0),
+                            &CheckHybridSwitching,
+                            hotspotConfig,
+                            lteConfig,
+                            Seconds(switchIntervalSec),
+                            rssiThresholdDbm,
+                            rssiHysteresisDb);
     }
 
     
