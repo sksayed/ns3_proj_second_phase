@@ -19,6 +19,12 @@
 #include "ns3/simulator.h"
 #include "ns3/sta-wifi-mac.h"
 
+// LTE/EPC overlay for hybrid UEs
+#include "ns3/lte-module.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/hybrid-buildings-propagation-loss-model.h"
+#include "ns3/isotropic-antenna-model.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -173,6 +179,19 @@ struct HotspotConfig
     std::map<Mac48Address, uint32_t> apBssidToMeshIndex;
     std::map<uint32_t, uint32_t> nodeIdToStaIndex;
     std::vector<uint32_t> currentStaApIndex;
+};
+
+// LTE overlay configuration: single macro eNB + per-UE LTE interfaces
+struct LteHybridConfig
+{
+    NodeContainer enbNodes;
+    NetDeviceContainer enbDevices;
+    NetDeviceContainer ueDevices;
+    Ptr<LteHelper> lteHelper;
+    Ptr<PointToPointEpcHelper> epcHelper;
+    Ipv4InterfaceContainer ueIfaces;
+    Ptr<Node> remoteHost;
+    Ipv4Address remoteHostIp;
 };
 
 namespace
@@ -737,6 +756,113 @@ HotspotConfig SetupHotspotInfrastructure(NodeContainer meshNodes,
     return config;
 }
 
+// Give each WiFi STA node an LTE interface using a single macro eNB.
+// This sets up LTE/EPC and assigns LTE IPv4 addresses to each UE. It also
+// creates a remote host behind the PGW for LTE-only traffic and installs
+// per-UE host routes for that destination only (WiFi remains default).
+LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes, double fieldSize)
+{
+    NS_LOG_FUNCTION("Setting up LTE overlay for " << ueNodes.GetN() << " UEs");
+
+    LteHybridConfig cfg;
+    if (ueNodes.GetN() == 0)
+    {
+        return cfg;
+    }
+
+    // One macro eNB at the center of the 400 x 400 m playfield
+    cfg.enbNodes.Create(1);
+
+    MobilityHelper enbMobility;
+    Ptr<ListPositionAllocator> enbPosAlloc = CreateObject<ListPositionAllocator>();
+    enbPosAlloc->Add(Vector(fieldSize / 2.0, fieldSize / 2.0, 25.0));
+    enbMobility.SetPositionAllocator(enbPosAlloc);
+    enbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    enbMobility.Install(cfg.enbNodes);
+
+    BuildingsHelper::Install(cfg.enbNodes);
+
+    // LTE PHY configuration aligned with 4G_simulation_file.cc
+    Config::SetDefault("ns3::LteEnbPhy::TxPower", DoubleValue(43.0)); // dBm
+    Config::SetDefault("ns3::LteUePhy::TxPower", DoubleValue(15.0));  // dBm
+
+    cfg.lteHelper = CreateObject<LteHelper>();
+    cfg.epcHelper = CreateObject<PointToPointEpcHelper>();
+    cfg.lteHelper->SetEpcHelper(cfg.epcHelper);
+
+    cfg.lteHelper->SetPathlossModelType(HybridBuildingsPropagationLossModel::GetTypeId());
+    cfg.lteHelper->SetPathlossModelAttribute("Frequency", DoubleValue(2.0e9));
+    cfg.lteHelper->SetUeAntennaModelType("ns3::IsotropicAntennaModel");
+    cfg.lteHelper->SetUeAntennaModelAttribute("Gain", DoubleValue(1.0));
+
+    cfg.enbDevices = cfg.lteHelper->InstallEnbDevice(cfg.enbNodes);
+    cfg.ueDevices = cfg.lteHelper->InstallUeDevice(ueNodes);
+
+    // Assign LTE IPv4 addresses to the LTE interfaces on each UE.
+    cfg.ueIfaces = cfg.epcHelper->AssignUeIpv4Address(cfg.ueDevices);
+
+    // Create a remote host behind the PGW, similar to 4G_simulation_file.cc
+    InternetStackHelper internet;
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+
+    Ptr<Node> pgw = cfg.epcHelper->GetPgwNode();
+    cfg.remoteHost = CreateObject<Node>();
+    NodeContainer remoteHostContainer(cfg.remoteHost);
+    internet.Install(remoteHostContainer);
+
+    // Place remote host just "outside" the playfield
+    MobilityHelper remoteMobility;
+    Ptr<ListPositionAllocator> remotePos = CreateObject<ListPositionAllocator>();
+    remotePos->Add(Vector(fieldSize * 0.5, fieldSize + 50.0, 0.0));
+    remoteMobility.SetPositionAllocator(remotePos);
+    remoteMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    remoteMobility.Install(remoteHostContainer);
+
+    // Add simple mobility to PGW to avoid warnings
+    NodeContainer epcCore;
+    epcCore.Add(pgw);
+    MobilityHelper epcMobility;
+    Ptr<ListPositionAllocator> epcPos = CreateObject<ListPositionAllocator>();
+    epcPos->Add(Vector(fieldSize * 0.5, fieldSize + 100.0, 0.0));
+    epcMobility.SetPositionAllocator(epcPos);
+    epcMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    epcMobility.Install(epcCore);
+
+    // High-capacity P2P link between PGW and remote host
+    PointToPointHelper p2p;
+    p2p.SetDeviceAttribute("DataRate", StringValue("100Gbps"));
+    p2p.SetChannelAttribute("Delay", StringValue("1ms"));
+    NetDeviceContainer internetDevices = p2p.Install(pgw, cfg.remoteHost);
+
+    Ipv4AddressHelper ipv4h;
+    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
+    Ipv4InterfaceContainer interfaces = ipv4h.Assign(internetDevices);
+    // index 1 is the remote host
+    cfg.remoteHostIp = interfaces.GetAddress(1);
+
+    // Remote host default route via PGW
+    Ptr<Ipv4StaticRouting> remoteRouting =
+        ipv4RoutingHelper.GetStaticRouting(cfg.remoteHost->GetObject<Ipv4>());
+    remoteRouting->SetDefaultRoute(cfg.epcHelper->GetUeDefaultGatewayAddress(), 1);
+
+    // For each UE, add a host route to the LTE remote host via the LTE interface
+    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
+    {
+        Ptr<Node> ue = ueNodes.Get(i);
+        Ptr<Ipv4> ipv4 = ue->GetObject<Ipv4>();
+        Ptr<Ipv4StaticRouting> ueRouting = ipv4RoutingHelper.GetStaticRouting(ipv4);
+
+        Ptr<NetDevice> lteDev = cfg.ueDevices.Get(i);
+        uint32_t lteIfIndex = ipv4->GetInterfaceForDevice(lteDev);
+
+        ueRouting->AddHostRouteTo(cfg.remoteHostIp,
+                                  cfg.epcHelper->GetUeDefaultGatewayAddress(),
+                                  lteIfIndex);
+    }
+
+    return cfg;
+}
+
 void ConfigureIPForwarding(NodeContainer meshNodes, NodeContainer internetNodes)
 {
     NS_LOG_FUNCTION("Configuring IP forwarding");
@@ -926,6 +1052,45 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer downloadApp = downloadClient.Install(internetConfig.internetNodes.Get(1));
         downloadApp.Start(Seconds(baseStart + 0.3));
         downloadApp.Stop(Seconds(simTime));
+    }
+}
+
+// Simple LTE-side traffic: one TCP BulkSend per UE to the LTE remote host.
+void SetupLteApplications(const LteHybridConfig& lteConfig,
+                          const HotspotConfig& hotspotConfig,
+                          double simTime,
+                          uint32_t packetSize,
+                          uint32_t uploadBytes)
+{
+    if (!lteConfig.remoteHost || hotspotConfig.staNodes.GetN() == 0)
+    {
+        return;
+    }
+
+    NS_LOG_FUNCTION("Setting up LTE applications to remote host " << lteConfig.remoteHostIp);
+
+    const uint16_t lteUploadPortBase = 52000;
+
+    ApplicationContainer serverApps;
+    // One sink on the LTE remote host for all UE uploads
+    PacketSinkHelper lteSink("ns3::TcpSocketFactory",
+                             InetSocketAddress(Ipv4Address::GetAny(), lteUploadPortBase));
+    serverApps.Add(lteSink.Install(lteConfig.remoteHost));
+    serverApps.Start(Seconds(0.5));
+    serverApps.Stop(Seconds(simTime));
+
+    // Each STA sends a BulkSend flow over LTE to the remote host
+    for (uint32_t i = 0; i < hotspotConfig.staNodes.GetN(); ++i)
+    {
+        BulkSendHelper lteUpload("ns3::TcpSocketFactory",
+                                 InetSocketAddress(lteConfig.remoteHostIp, lteUploadPortBase));
+        lteUpload.SetAttribute("MaxBytes", UintegerValue(uploadBytes));
+        lteUpload.SetAttribute("SendSize", UintegerValue(packetSize));
+
+        ApplicationContainer app = lteUpload.Install(hotspotConfig.staNodes.Get(i));
+        // Start a bit after WiFi apps to make timelines readable
+        app.Start(Seconds(12.0 + 0.2 * i));
+        app.Stop(Seconds(simTime));
     }
 }
 
@@ -1197,12 +1362,20 @@ int main(int argc, char* argv[])
     if (enableHotspot)
     {
         hotspotConfig = SetupHotspotInfrastructure(meshNetConfig.meshNodes,
-                                                    apNodeIndex,
-                                                    numStaNodes,
-                                                    nodeSpacing,
-                                                    staHeight,
-                                                    deviceCfg,
-                                                    hotspotBand);  // Pass device config for hotspot TX power
+                                                   apNodeIndex,
+                                                   numStaNodes,
+                                                   nodeSpacing,
+                                                   staHeight,
+                                                   deviceCfg,
+                                                   hotspotBand);  // Pass device config for hotspot TX power
+    }
+
+    // LTE overlay: give each STA node a cellular interface (no switching yet)
+    LteHybridConfig lteConfig;
+    if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
+    {
+        // Field size is 400 x 400 m as per project objective
+        lteConfig = SetupLteHybridOverlay(hotspotConfig.staNodes, 400.0);
     }
 
     ConfigureIPForwarding(meshNetConfig.meshNodes, internetConfig.internetNodes);
@@ -1220,6 +1393,16 @@ int main(int argc, char* argv[])
                       uploadBytes,
                       downloadBytes,
                       voipBytes);
+
+    // LTE-side traffic: additional TCP uploads over LTE to the LTE remote host
+    if (lteConfig.remoteHost)
+    {
+        SetupLteApplications(lteConfig,
+                             hotspotConfig,
+                             simTime,
+                             packetSize,
+                             uploadBytes);
+    }
 
     
     FlowMonitorHelper flowmon;
