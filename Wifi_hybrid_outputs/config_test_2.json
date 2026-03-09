@@ -1,0 +1,30 @@
+{
+  "network_topology": {
+    "num_nodes": 4,
+    "grid_width": 0,
+    "node_spacing_meters": 150
+  },
+  "traffic_configuration": {
+    "packet_size_bytes": 1400,
+    "num_sta_nodes": 10
+  },
+  "mesh_configuration": {
+    "config_id": 1
+  },
+  "ip_configuration": {
+    "source_ip": "192.168.1.2",
+    "destination_ip": "8.8.8.2"
+  },
+  "port_information": {
+    "tcp_port": 80,
+    "udp_port": 9,
+    "note": "UDP disabled - only TCP traffic generated"
+  },
+  "output_files": {
+    "netanim_xml": "Wifi_hybrid_outputs/wifi-hybrid-netanim_data.xml",
+    "mesh_tr": "Wifi_hybrid_outputs/wifi-hybrid-mesh-trace_data.tr",
+    "sta_tr": "Wifi_hybrid_outputs/wifi-hybrid-sta-trace_data.tr",
+    "flowmon_xml": "Wifi_hybrid_outputs/wifi-hybrid-flowmon_data.xml",
+    "metrics_md": "Wifi_hybrid_outputs/wifi-hybrid-metrics_data.md"
+  }
+}

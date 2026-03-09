@@ -1019,7 +1019,7 @@ void SaveFlowMonitorResults(Ptr<FlowMonitor> monitor,
 
 void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaNodes, 
                            uint32_t packetSize, double nodeSpacing, uint32_t meshConfig,
-                           const std::string& outputDir = "wifi_test_research/six_node_layout")
+                           const std::string& outputDir)
 {
     std::stringstream json;
     json << "{\n";
@@ -1045,10 +1045,11 @@ void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaN
     json << "    \"note\": \"UDP disabled - only TCP traffic generated\"\n";
     json << "  },\n";
     json << "  \"output_files\": {\n";
-    json << "    \"xml_file\": \"" << outputDir << "/wifi-test-2-adhoc-grid-six.xml\",\n";
-    json << "    \"tr_file\": \"" << outputDir << "/wifi-test-2-adhoc-grid-six.tr\",\n";
-    json << "    \"sta_tr_file\": \"" << outputDir << "/wifi-test-2-sta-six.tr\",\n";
-    json << "    \"flowmon_file\": \"" << outputDir << "/wifi-test-2-adhoc-grid-six-flowmon.xml\"\n";
+    json << "    \"netanim_xml\": \"" << outputDir << "/wifi-hybrid-netanim_data.xml\",\n";
+    json << "    \"mesh_tr\": \"" << outputDir << "/wifi-hybrid-mesh-trace_data.tr\",\n";
+    json << "    \"sta_tr\": \"" << outputDir << "/wifi-hybrid-sta-trace_data.tr\",\n";
+    json << "    \"flowmon_xml\": \"" << outputDir << "/wifi-hybrid-flowmon_data.xml\",\n";
+    json << "    \"metrics_md\": \"" << outputDir << "/wifi-hybrid-metrics_data.md\"\n";
     json << "  }\n";
     json << "}\n";
     
@@ -1094,7 +1095,8 @@ int main(int argc, char* argv[])
     uint32_t downloadBytes = 1 * 1024 * 1024;
     uint32_t voipBytes = 1 * 1024 * 1024;
     std::string hotspotBand = "5g"; // Hotspot band selector (5g or 2g)
-    std::string outputDir = "wifi_hybrid_outputs_2";
+    // Root output directory for Wi-Fi hybrid runs (in repo root)
+    std::string outputDir = "Wifi_hybrid_outputs";
     double flowScale = 1.0;
 
     CommandLine cmd;
@@ -1229,7 +1231,8 @@ int main(int argc, char* argv[])
     Simulator::Stop(Seconds(simTime));
     Simulator::Run();
 
-    std::string flowmonXmlPath = outputDir + "/wifi-test-2-adhoc-grid-six-flowmon.xml";
+    // Hybrid Wi-Fi FlowMonitor XML with _data suffix
+    std::string flowmonXmlPath = outputDir + "/wifi-hybrid-flowmon_data.xml";
     SaveFlowMonitorResults(monitor, flowmon, flowmonXmlPath);
 
     if (enableHotspot)
@@ -1270,11 +1273,12 @@ int main(int argc, char* argv[])
 
     Simulator::Destroy();
 
+    // Run local Wi-Fi FlowMonitor parser with current folder structure
     std::ostringstream parseCmd;
-    parseCmd << "python3 wifi_test_research/parse_flowmon_xml.py "
+    parseCmd << "python3 examples/my-scenarios/parse_wifi_flowmon.py "
              << flowmonXmlPath
              << " --sim-time=" << simTime
-             << " --md " << outputDir << "/wifi-test-2-adhoc-grid-six-metrics.md";
+             << " --md " << outputDir << "/wifi-hybrid-metrics_data.md";
 
     std::cout << "Running FlowMonitor parser..." << std::endl;
     int parseStatus = std::system(parseCmd.str().c_str());

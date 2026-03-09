@@ -40,7 +40,7 @@ build_example(
 
 build_example(
   NAME wifi-hybrid-try-2
-  SOURCE_FILES wifi_mesh_simulation_file.cc
+  SOURCE_FILES wifi_hybrid_try_2.cc
   LIBRARIES_TO_LINK
     ${libcore}
     ${libnetwork}
