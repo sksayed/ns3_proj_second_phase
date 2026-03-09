@@ -39,6 +39,22 @@ build_example(
 )
 
 build_example(
+  NAME wifi-hybrid-try-2
+  SOURCE_FILES wifi_mesh_simulation_file.cc
+  LIBRARIES_TO_LINK
+    ${libcore}
+    ${libnetwork}
+    ${libinternet}
+    ${libmesh}
+    ${libwifi}
+    ${libpoint-to-point}
+    ${libapplications}
+    ${libcsma}
+    ${libbuildings}
+    ${libflow-monitor}
+)
+
+build_example(
   NAME 5G-simulation-file
   SOURCE_FILES 5G_simulation_file.cc
   LIBRARIES_TO_LINK
@@ -52,4 +68,22 @@ build_example(
     ${libflow-monitor}
     ${libnr}
     ${libnr-epc}
+)
+
+build_example(
+  NAME wifi-hybrid-scenario
+  SOURCE_FILES wifi_hybrid_scenario.cc
+  LIBRARIES_TO_LINK
+    ${libcore}
+    ${libnetwork}
+    ${libinternet}
+    ${libwifi}
+    ${libmesh}
+    ${liblte}
+    ${libnr}
+    ${libbuildings}
+    ${libmobility}
+    ${libpoint-to-point}
+    ${libapplications}
+    ${libflow-monitor}
 )

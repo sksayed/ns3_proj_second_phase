@@ -1,0 +1,119 @@
+
+
+# 2026 Research Plan: Hybrid Network Phase 1
+
+## 1. Phase 1 Overview: NS-3 Hybrid Network Construction
+
+**Period:** 2026.01 – 2026.03 **Objective:** To build and evaluate the performance of hybrid networks (WiFi Mesh + LTE and WiFi Mesh + 5G) using the NS-3 simulator.
+
+### 1.1 Simulation Environment Configuration
+
+The simulation will be based on the environment established in 2025, utilizing a hybrid network topology where WiFi Mesh and cellular networks operate simultaneously.
+
+| Parameter | Value |
+| --- | --- |
+| **Simulation Space** | 400 x 400 x 30 m (High-altitude work environment) 
+
+ |
+| **Obstacles** | 7 buildings (Residential, Office, Commercial) 
+
+ |
+| **Propagation Loss Model** | HybridBuildingsPropagationLossModel 
+
+ |
+| **Mobility Model** | Gauss-Markov 3D Movement 
+
+ |
+| **Number of Nodes** | 5, 10, 15 (Clients) 
+
+ |
+| **Payload Size** | 10KB, 50KB, 1MB 
+
+ |
+| **Traffic Type** | HTTP, HTTPS, Video (TCP), VoIP (UDP), Mixed 
+
+ |
+| **RNG Seeds** | 6, 7, 8 (Average of 3 repetitions) 
+
+ |
+| **Simulation Time** | 30 seconds 
+
+ |
+| **Switching Trigger** | RSSI Threshold-based (Signal instability detection) 
+
+ |
+| **Target Latency** | 200ms or less (Server-client synchronization) 
+
+ |
+
+### 1.2 Hybrid Network Combinations
+
+Two specific combinations will be compared to evaluate their effectiveness in construction site dead zones.
+
+| Item | WiFi Mesh + LTE | WiFi Mesh + 5G |
+| --- | --- | --- |
+| **Primary Network** | WiFi Mesh (802.11s) 
+
+ | WiFi Mesh (802.11s) 
+
+ |
+| **Fallback Network** | Public LTE (2.0 GHz) 
+
+ | Public 5G NR (3.5 GHz) 
+
+ |
+| **Switching Condition** | Below WiFi RSSI Threshold 
+
+ | Below WiFi RSSI Threshold 
+
+ |
+| **Expected Effect** | Cost-effective redundancy 
+
+ | Ultra-low latency fallback 
+
+ |
+
+### 1.3 Switching Mechanism Design
+
+A core focus of Phase 1 is the design of the automatic transition logic:
+
+* 
+**Signal Monitoring**: Real-time tracking of RSSI (Received Signal Strength Indicator).
+
+
+* 
+**Secondary Trigger**: PDR (Packet Delivery Ratio) drop detection to trigger switching.
+
+
+* 
+**Data Integrity**: Handover protocols to ensure no data is lost during the transition.
+
+
+* 
+**Recovery**: "Fallback-to-Primary" logic to return to WiFi Mesh once the signal is restored.
+
+
+* 
+**Latency Optimization**: Reviewing Pre-association techniques to minimize switching delays.
+
+
+
+### 1.4 Performance Evaluation Metrics
+
+The success of the simulation will be measured against the following:
+
+* 
+**PDR Continuity**: Maintaining packet delivery rates before and after switching.
+
+
+* 
+**End-to-End Delay**: Achieving the target of **200ms or less**.
+
+
+* 
+**Switching Latency**: Time required to move from Primary to Fallback networks.
+
+
+* 
+**Throughput**: Monitoring data processing changes during the switch.
+

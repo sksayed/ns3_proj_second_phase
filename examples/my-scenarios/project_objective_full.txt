@@ -1,0 +1,298 @@
+
+
+[Research Plan 2026] Hybrid Network Construction and Performance Evaluation for Multi-Robot Systems at Construction Sites 
+
+1. Research Background and Objectives 
+
+1.1 Research Background 
+
+* Through the NS-3 based Cross-Technology network performance analysis conducted in 2025, the individual performance characteristics of WiFi Mesh, 4G LTE, and 5G NR technologies were confirmed.
+
+
+* In 108 simulation scenarios, WiFi Mesh (2.4 GHz) achieved a maximum PDR of 93.99%, showing excellence in reliability, while 5G NR showed superior performance in terms of throughput (2.95 Mbps) and latency (11.74 ms).
+
+
+* However, in the actual operating environment of a construction site, it is difficult to guarantee stable communication with a single network technology alone.
+
+
+* Communication dead zones occur in elevator shafts, underground floors, core wall areas, and dense rebar/piping sections, and power instability was identified as a major cause of system failure.
+
+
+* Accordingly, the host organization raised concerns about network disconnection when using WiFi or 5G alone and is showing high interest in network disconnection resolution plans through hybrid networks.
+
+
+
+1.2 Research Objectives 
+
+The purpose of this study is to design and verify a hybrid network architecture that combines WiFi Mesh and cellular networks (LTE/5G) to build a stable communication environment for multi-robot systems at construction sites. Specific research goals are as follows:
+
+* NS-3 simulation construction and performance comparison evaluation of WiFi Mesh + LTE and WiFi Mesh + 5G hybrid networks.
+
+
+* Design and verification of an automatic switching mechanism when each network signal is unstable.
+
+
+* Implementation of actual hybrid network construction and switching tests in a laboratory environment.
+
+
+* System advancement through integrated interlocking with the NSLAB platform.
+
+
+* Achievement of synchronization delay between server and client of 200ms or less (meeting technical requirements).
+
+
+
+1.3 Necessity of Hybrid Networks 
+
+* Based on the analysis of individual technologies, it is determined that combining the high reliability of WiFi Mesh with the excellent throughput/low-latency characteristics of cellular networks can effectively resolve communication dead zones and network disconnection problems occurring at construction sites.
+
+
+* In particular, a hybrid method that automatically switches to a cellular network in areas where the WiFi signal is unstable (dense obstacles, long distances, etc.) can be a practical solution.
+
+
+
+---
+
+2. 2026 Research Implementation Plan 
+
+2.1 Overall Schedule Overview 
+
+| Phase | Period | Key Content | Deliverables |
+| --- | --- | --- | --- |
+| **Phase 1** | 2026.01 ~ 03 | NS-3 Hybrid Network Construction & Performance Evaluation (WiFi Mesh + LTE, WiFi Mesh + 5G) | Simulation Result Report, Source Code 
+
+ |
+| **Phase 2** | 2026.04 ~ 08 | WiFi Mesh + Public LTE/5G Lab Environment Construction & Switching Tests | Experimental Environment Report, Switching Test Results 
+
+ |
+| **Phase 3** | 2026.09 ~ 12 | NSLAB Platform Integration & Advancement | Platform Integration Report, Final System 
+
+ |
+
+2.2 Phase 1: NS-3 Hybrid Network Construction and Performance Evaluation (~2026.03.31) 
+
+2.2.1 Simulation Environment Configuration 
+
+Based on the simulation environment accumulated in 2025, a hybrid network topology operating WiFi Mesh and cellular networks simultaneously is constructed in NS-3.
+
+| Parameter | Setting Value |
+| --- | --- |
+| **Simulation Space** | 400 x 400 x 30 m (High-altitude work environment) 
+
+ |
+| **Obstacles** | 7 buildings (Residential, Office, Commercial) 
+
+ |
+| **Propagation Loss Model** | HybridBuildingsPropagationLossModel 
+
+ |
+| **Mobility Model** | Gauss-Markov 3D Movement 
+
+ |
+| **Number of Nodes** | 5, 10, 15 (Clients) 
+
+ |
+| **Payload Size** | 10KB, 50KB, 1MB 
+
+ |
+| **Traffic Type** | HTTP, HTTPS, Video (TCP), VoIP (UDP), Mixed 
+
+ |
+| **RNG Seeds** | 6, 7, 8 (Average of 3 repetitions) 
+
+ |
+| **Simulation Time** | 30 seconds 
+
+ |
+| **Switching Trigger** | RSSI threshold-based (Signal instability detection) 
+
+ |
+| **Target Latency** | 200ms or less (Server-client synchronization) 
+
+ |
+
+2.2.2 Hybrid Network Configuration 
+
+Two types of hybrid network combinations are constructed for comparative evaluation.
+
+| Item | WiFi Mesh + LTE | WiFi Mesh + 5G |
+| --- | --- | --- |
+| **Primary Network** | WiFi Mesh (802.11s) 
+
+ | WiFi Mesh (802.11s) 
+
+ |
+| **Fallback Network** | Public LTE (2.0 GHz) 
+
+ | Public 5G NR (3.5 GHz) 
+
+ |
+| **Switching Condition** | When WiFi signal is unstable (Below RSSI threshold) 
+
+ | When WiFi signal is unstable (Below RSSI threshold) 
+
+ |
+| **Expected Effect** | Cost-effective redundancy, wide coverage 
+
+ | Ultra-low latency fallback, high throughput 
+
+ |
+| **Key Evaluation Metrics** | Switching delay, PDR continuity, data integrity 
+
+ | Switching delay, PDR continuity, data integrity 
+
+ |
+
+2.2.3 Switching Mechanism Design 
+
+A switching mechanism is designed to automatically transition to a cellular network upon detecting WiFi Mesh signal instability.
+
+* Signal quality monitoring based on RSSI (Received Signal Strength Indicator).
+
+
+* Secondary trigger mechanism through PDR drop detection.
+
+
+* Handover protocol to guarantee data integrity during switching.
+
+
+* Fallback-to-Primary logic for automatic return upon WiFi Mesh recovery.
+
+
+* Review of Pre-association techniques to minimize switching delay.
+
+
+
+2.2.4 Performance Evaluation Metrics 
+
+The hybrid network performance is evaluated based on the following indicators:
+
+* 
+**Packet Delivery Ratio (PDR)**: Continuity of packet delivery rates before and after hybrid switching.
+
+
+* 
+**End-to-End Delay**: Server-client synchronization delay (Target: 200ms or less).
+
+
+* 
+**Switching Latency**: Time required for transition from Primary to Fallback network.
+
+
+* 
+**Throughput**: Changes in data throughput before and after switching.
+
+
+* 
+**Data Reception Rate**: Average reception rate in an environment with 3 or more clients connected simultaneously.
+
+
+
+2.3 Phase 2: Lab Environment Construction and Switching Tests (~2026.08.31) 
+
+2.3.1 Experimental Environment Construction 
+
+An actual hybrid network is constructed in a lab environment based on Phase 1 simulation results.
+
+* WiFi Mesh utilizes devices specified in the technical requirements (EAP225-Outdoor, Netgear Orbi 960, ASUS ZenWiFi AX), and Public LTE/5G is accessed via robot clients equipped with commercial cellular modules.
+
+
+* 
+**WiFi Mesh AP Optimal Placement**: Applying the minimum quantity and placement method derived from simulations.
+
+
+* 
+**Cellular Module Installation**: Mounting LTE/5G communication modules on robot clients.
+
+
+* 
+**Network Monitoring System**: Establishing infrastructure to measure real-time RSSI, PDR, and latency.
+
+
+* 
+**Server Environment**: Configuring a remote control platform (server) and preparing a simultaneous client connection test environment.
+
+
+
+2.3.2 Switching Test Scenarios 
+
+Various network failure situations are reproduced to verify the stability of hybrid switching.
+
+* 
+**Scenario 1**: Automatic cellular transition test when WiFi AP power is cut off.
+
+
+* 
+**Scenario 2**: Switching test when WiFi signal is attenuated by obstacles.
+
+
+* 
+**Scenario 3**: Simultaneous switching test for multiple clients (3 or more).
+
+
+* 
+**Scenario 4**: Automatic Fallback-to-Primary test after WiFi recovery.
+
+
+* 
+**Scenario 5**: System stability test during repetitive network transitions.
+
+
+
+2.3.3 Performance Measurement and Comparison 
+
+Actual measurement data is compared with Phase 1 simulation results to verify the validity of the simulation model and derive correction parameters reflecting real-world characteristics. The achievement of a 200ms or less synchronization delay is specifically confirmed.
+
+2.4 Phase 3: NSLAB Platform Integration and Advancement (~2026.12.31) 
+
+2.4.1 Platform Integration 
+
+The hybrid network system verified in Phase 2 is integrated with the NSLAB platform.
+
+* Development of API integration interfaces with the NSLAB remote control platform.
+
+
+* Integration of a hybrid network status monitoring dashboard.
+
+
+* Development of a network resource management module for simultaneous multi-robot control.
+
+
+* Implementation of network switching event logging and analysis functions.
+
+
+
+2.4.2 System Advancement 
+
+The stability and performance of the system are improved based on empirical data.
+
+* Review of AI-based network quality prediction and preemptive switching algorithms.
+
+
+* Development of optimal network setting profiles for each construction stage (Structure → MEP transition).
+
+
+* Advanced power instability response (UPS interlocking, auto-recovery sequence).
+
+
+* Preparation of final performance reports and operational guidelines.
+
+
+
+---
+
+3. Project Deliverables 
+
+* NS-3 Hybrid Network Simulation Result Report (Phase 1).
+
+
+* Simulation Source Code and Execution Files.
+
+
+* Lab Environment Construction and Switching Test Result Report (Phase 2).
+
+
+* NSLAB Platform Integration Report and Final System (Phase 3).
+
+
+* Construction Site Hybrid Network Operational Guidelines.
