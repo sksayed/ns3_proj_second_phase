@@ -6,7 +6,7 @@
   },
   "traffic_configuration": {
     "packet_size_bytes": 1400,
-    "num_sta_nodes": 10
+    "num_sta_nodes": 20
   },
   "mesh_configuration": {
     "config_id": 1
@@ -18,7 +18,7 @@
   "port_information": {
     "tcp_port": 80,
     "udp_port": 9,
-    "note": "UDP disabled - only TCP traffic generated"
+    "note": "TCP and UDP (VoIP) traffic generated"
   },
   "output_files": {
     "netanim_xml": "Wifi_hybrid_outputs/wifi-hybrid-netanim_data.xml",

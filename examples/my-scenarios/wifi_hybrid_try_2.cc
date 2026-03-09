@@ -217,8 +217,6 @@ enum HybridPath
 
 struct HybridUeState
 {
-    bool hasWifi{true};
-    bool hasLte{false};
     HybridPath currentPath{USE_WIFI};
     double rssiAvgDbm{-1000.0};
     bool rssiInitialized{false};
@@ -1378,7 +1376,7 @@ void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaN
     json << "  \"port_information\": {\n";
     json << "    \"tcp_port\": 80,\n";
     json << "    \"udp_port\": 9,\n";
-    json << "    \"note\": \"UDP disabled - only TCP traffic generated\"\n";
+    json << "    \"note\": \"TCP and UDP (VoIP) traffic generated\"\n";
     json << "  },\n";
     json << "  \"output_files\": {\n";
     json << "    \"netanim_xml\": \"" << outputDir << "/wifi-hybrid-netanim_data.xml\",\n";

@@ -1,6 +1,0 @@
-time_s,sta_index,from,to,rssi_avg_dbm,service_ip
-5,0,wifi,lte,-64.4568,8.8.8.2
-5,1,wifi,lte,-61.2614,8.8.8.2
-5,2,wifi,lte,-64.8911,8.8.8.2
-5,3,wifi,lte,-64.392,8.8.8.2
-5,4,wifi,lte,-71.4541,8.8.8.2
