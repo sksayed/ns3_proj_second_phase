@@ -798,8 +798,8 @@ HotspotConfig SetupHotspotInfrastructure(NodeContainer meshNodes,
 
 // Give each WiFi STA node an LTE interface using a single macro eNB.
 // This sets up LTE/EPC and assigns LTE IPv4 addresses to each UE. It also
-// creates a remote host behind the PGW for LTE-only traffic and installs
-// per-UE host routes for that destination only (WiFi remains default).
+// connects PGW to the existing ISP router so UEs can reach the same service IP
+// over either WiFi or LTE; per-UE route steering is handled by the hybrid controller.
 LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes,
                                       Ptr<Node> ispRouter,
                                       Ipv4Address serviceIp,
@@ -1014,8 +1014,8 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
     const uint16_t videoPort = 8080;
     const uint16_t voipPort = 5060;
     const uint16_t dnsPort = 53;
-    const uint16_t downloadPortBase = 50000;
     const uint16_t uploadPortBase = 51000;
+    const uint16_t serviceTcpPortBase = 50000;
     
     // Install servers on the internet node (remote host analogue)
     ApplicationContainer serverApps;
@@ -1040,7 +1040,6 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         return;
     }
     
-    const InetSocketAddress videoAddress(internetConfig.internetInterfaces.GetAddress(1), videoPort);
     const InetSocketAddress voipAddress(internetConfig.internetInterfaces.GetAddress(1), voipPort);
 
     const uint32_t staCount = hotspotConfig.staNodes.GetN();
@@ -1076,64 +1075,26 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         voipApp.Start(Seconds(baseStart + 0.1));
         voipApp.Stop(Seconds(simTime));
 
-        // TCP download (server -> STA)
-        uint16_t downloadPort = downloadPortBase + i;
-        PacketSinkHelper downloadSink("ns3::TcpSocketFactory",
-                                      InetSocketAddress(Ipv4Address::GetAny(), downloadPort));
-        ApplicationContainer sinkApp = downloadSink.Install(hotspotConfig.staNodes.Get(i));
-        sinkApp.Start(Seconds(9.5));
-        sinkApp.Stop(Seconds(simTime));
+        // Second TCP service flow (STA -> server). Using service IP keeps this flow
+        // steerable by the same WiFi/LTE host-route switch as upload/VoIP.
+        uint16_t serviceTcpPort = serviceTcpPortBase + i;
+        OnOffHelper serviceTcpClient("ns3::TcpSocketFactory",
+                                     InetSocketAddress(internetConfig.internetInterfaces.GetAddress(1),
+                                                       serviceTcpPort));
+        serviceTcpClient.SetAttribute("DataRate", DataRateValue(DataRate("15Mbps")));
+        serviceTcpClient.SetAttribute("PacketSize", UintegerValue(packetSize));
+        serviceTcpClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
+        serviceTcpClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
+        serviceTcpClient.SetAttribute("MaxBytes", UintegerValue(downloadBytes));
+        ApplicationContainer serviceTcpApp = serviceTcpClient.Install(hotspotConfig.staNodes.Get(i));
+        serviceTcpApp.Start(Seconds(baseStart + 0.3));
+        serviceTcpApp.Stop(Seconds(simTime));
 
-        OnOffHelper downloadClient("ns3::TcpSocketFactory",
-                                   InetSocketAddress(hotspotConfig.staInterfaces.GetAddress(i), downloadPort));
-        downloadClient.SetAttribute("DataRate", DataRateValue(DataRate("15Mbps")));
-        downloadClient.SetAttribute("PacketSize", UintegerValue(packetSize));
-        downloadClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
-        downloadClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
-        downloadClient.SetAttribute("MaxBytes", UintegerValue(downloadBytes));
-        ApplicationContainer downloadApp = downloadClient.Install(internetConfig.internetNodes.Get(1));
-        downloadApp.Start(Seconds(baseStart + 0.3));
-        downloadApp.Stop(Seconds(simTime));
-    }
-}
-
-// LTE-side traffic: one TCP BulkSend per UE to the same service IP as WiFi.
-void SetupLteApplications(const LteHybridConfig& lteConfig,
-                          const HotspotConfig& hotspotConfig,
-                          Ptr<Node> serviceNode,
-                          double simTime,
-                          uint32_t packetSize,
-                          uint32_t uploadBytes)
-{
-    if (!serviceNode || hotspotConfig.staNodes.GetN() == 0)
-    {
-        return;
-    }
-
-    NS_LOG_FUNCTION("Setting up LTE applications to service " << lteConfig.serviceIp);
-
-    const uint16_t lteUploadPortBase = 52000;
-
-    ApplicationContainer serverApps;
-    // One sink on the service node for all UE LTE uploads
-    PacketSinkHelper lteSink("ns3::TcpSocketFactory",
-                             InetSocketAddress(Ipv4Address::GetAny(), lteUploadPortBase));
-    serverApps.Add(lteSink.Install(serviceNode));
-    serverApps.Start(Seconds(0.5));
-    serverApps.Stop(Seconds(simTime));
-
-    // Each STA sends a BulkSend flow over LTE to the remote host
-    for (uint32_t i = 0; i < hotspotConfig.staNodes.GetN(); ++i)
-    {
-        BulkSendHelper lteUpload("ns3::TcpSocketFactory",
-                                 InetSocketAddress(lteConfig.serviceIp, lteUploadPortBase));
-        lteUpload.SetAttribute("MaxBytes", UintegerValue(uploadBytes));
-        lteUpload.SetAttribute("SendSize", UintegerValue(packetSize));
-
-        ApplicationContainer app = lteUpload.Install(hotspotConfig.staNodes.Get(i));
-        // Start a bit after WiFi apps to make timelines readable
-        app.Start(Seconds(12.0 + 0.2 * i));
-        app.Stop(Seconds(simTime));
+        PacketSinkHelper serviceTcpSink("ns3::TcpSocketFactory",
+                                        InetSocketAddress(Ipv4Address::GetAny(), serviceTcpPort));
+        ApplicationContainer serviceTcpSinkApp = serviceTcpSink.Install(internetConfig.internetNodes.Get(1));
+        serviceTcpSinkApp.Start(Seconds(9.5));
+        serviceTcpSinkApp.Stop(Seconds(simTime));
     }
 }
 
@@ -1451,8 +1412,20 @@ SwitchUeToWifi(uint32_t staIndex,
     Ipv4StaticRoutingHelper helper;
     Ptr<Ipv4StaticRouting> rt = helper.GetStaticRouting(ipv4);
 
-    // Remove LTE host route to the service, fall back to existing WiFi routing
+    // Remove LTE host route to the service and install explicit WiFi host route.
     RemoveExistingHostRoute(rt, lteConfig.serviceIp);
+    if (staIndex < hotspotConfig.currentStaApIndex.size())
+    {
+        uint32_t apNodeIndex = hotspotConfig.currentStaApIndex[staIndex];
+        if (apNodeIndex != std::numeric_limits<uint32_t>::max() &&
+            apNodeIndex < hotspotConfig.apInterfaces.GetN())
+        {
+            Ipv4Address apHotspotIp = hotspotConfig.apInterfaces.GetAddress(apNodeIndex);
+            Ptr<NetDevice> staDev = hotspotConfig.staDevices.Get(staIndex);
+            uint32_t staIf = ipv4->GetInterfaceForDevice(staDev);
+            rt->AddHostRouteTo(lteConfig.serviceIp, apHotspotIp, staIf);
+        }
+    }
 
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.currentPath = USE_WIFI;
@@ -1708,7 +1681,7 @@ int main(int argc, char* argv[])
                         MakeCallback(&WifiSnifferRxCallback));
     }
 
-    // LTE overlay: give each STA node a cellular interface (no switching yet)
+    // LTE overlay: give each STA node a cellular interface used by route steering
     LteHybridConfig lteConfig;
     if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
@@ -1736,17 +1709,6 @@ int main(int argc, char* argv[])
                       uploadBytes,
                       downloadBytes,
                       voipBytes);
-
-    // LTE-side traffic: additional TCP uploads over LTE to the same service node as WiFi.
-    if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
-    {
-        SetupLteApplications(lteConfig,
-                             hotspotConfig,
-                             internetConfig.internetNodes.Get(1),
-                             simTime,
-                             packetSize,
-                             uploadBytes);
-    }
 
     // Start periodic RSSI-based switching after initial association/traffic startup.
     if (enableSwitching && enableHotspot && hotspotConfig.staNodes.GetN() > 0)
