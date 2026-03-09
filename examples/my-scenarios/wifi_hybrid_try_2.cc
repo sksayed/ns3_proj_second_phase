@@ -205,6 +205,41 @@ struct StaRoamingContext
 
 StaRoamingContext g_staRoamingContext;
 
+// Per-UE hybrid WiFi/LTE quality and path state
+enum HybridPath
+{
+    USE_WIFI = 0,
+    USE_LTE = 1
+};
+
+struct HybridUeState
+{
+    bool hasWifi{true};
+    bool hasLte{false};
+    HybridPath currentPath{USE_WIFI};
+    double rssiAvgDbm{-1000.0};
+    bool rssiInitialized{false};
+    uint64_t txPackets{0};
+    uint64_t rxPackets{0};
+    Time lastSwitch{Seconds(0.0)};
+};
+
+struct HybridControllerContext
+{
+    bool enabled{false};
+    // Indexed by STA index (0..numStaNodes-1)
+    std::vector<HybridUeState> ueStates;
+    // Map STA node ID -> STA index from HotspotConfig
+    const std::map<uint32_t, uint32_t>* nodeIdToStaIndex{nullptr};
+    // Simple thresholds for RSSI-based switching (can be tuned)
+    double rssiThresholdDbm{-80.0};
+    Time minSwitchInterval{Seconds(2.0)};
+};
+
+HybridControllerContext g_hybridContext;
+std::ofstream g_rssiLog;
+bool g_rssiLogOpen{false};
+
 void
 RemoveExistingHostRoute(Ptr<Ipv4StaticRouting> routing, const Ipv4Address& destination)
 {
@@ -1182,6 +1217,83 @@ void SaveFlowMonitorResults(Ptr<FlowMonitor> monitor,
     NS_LOG_INFO("FlowMonitor results saved to XML and printed to console");
 }
 
+// ---------------------------------------------------------------------------//
+// WiFi RSSI monitoring for hybrid controller
+// ---------------------------------------------------------------------------//
+
+static void
+WifiSnifferRxCallback(std::string context,
+                      Ptr<const Packet> packet,
+                      uint16_t channelFreqMhz,
+                      WifiTxVector txVector,
+                      MpduInfo aMpdu,
+                      SignalNoiseDbm signalNoise,
+                      uint16_t /*channelNumber*/)
+{
+    if (!g_hybridContext.enabled || g_hybridContext.nodeIdToStaIndex == nullptr)
+    {
+        return;
+    }
+
+    // Extract nodeId from context string: "/NodeList/<id>/DeviceList/..."
+    uint32_t nodeId = 0;
+    std::size_t nPos = context.find("NodeList/");
+    if (nPos != std::string::npos)
+    {
+        nPos += std::string("NodeList/").size();
+        std::size_t endPos = context.find('/', nPos);
+        if (endPos != std::string::npos)
+        {
+            std::string idStr = context.substr(nPos, endPos - nPos);
+            try
+            {
+                nodeId = static_cast<uint32_t>(std::stoul(idStr));
+            }
+            catch (const std::exception&)
+            {
+                return;
+            }
+        }
+    }
+
+    auto it = g_hybridContext.nodeIdToStaIndex->find(nodeId);
+    if (it == g_hybridContext.nodeIdToStaIndex->end())
+    {
+        // Not a STA node we track
+        return;
+    }
+    uint32_t staIndex = it->second;
+    if (staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    double rssiDbm = signalNoise.signal;
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+
+    const double alpha = 0.9; // strong smoothing
+    if (!st.rssiInitialized)
+    {
+        st.rssiAvgDbm = rssiDbm;
+        st.rssiInitialized = true;
+    }
+    else
+    {
+        st.rssiAvgDbm = alpha * st.rssiAvgDbm + (1.0 - alpha) * rssiDbm;
+    }
+
+    if (g_rssiLogOpen)
+    {
+        // time(s), staIndex, nodeId, freqMHz, instRssi, avgRssi
+        g_rssiLog << Simulator::Now().GetSeconds() << ","
+                  << staIndex << ","
+                  << nodeId << ","
+                  << channelFreqMhz << ","
+                  << rssiDbm << ","
+                  << st.rssiAvgDbm << "\n";
+    }
+}
+
 void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaNodes, 
                            uint32_t packetSize, double nodeSpacing, uint32_t meshConfig,
                            const std::string& outputDir)
@@ -1370,6 +1482,36 @@ int main(int argc, char* argv[])
                                                    hotspotBand);  // Pass device config for hotspot TX power
     }
 
+    // Initialize hybrid controller state (one entry per STA)
+    if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
+    {
+        g_hybridContext.enabled = true;
+        g_hybridContext.ueStates.assign(hotspotConfig.staNodes.GetN(), HybridUeState{});
+        g_hybridContext.nodeIdToStaIndex = &hotspotConfig.nodeIdToStaIndex;
+
+        // Open RSSI log file in the chosen output directory
+        std::string rssiLogPath = outputDir + "/wifi-hybrid-rssi_log.csv";
+        g_rssiLog.open(rssiLogPath, std::ios::out | std::ios::trunc);
+        if (g_rssiLog.is_open())
+        {
+            g_rssiLogOpen = true;
+            g_rssiLog << "time_s,sta_index,node_id,freq_mhz,inst_rssi_dbm,avg_rssi_dbm\n";
+            std::cout << "Hybrid RSSI log will be written to " << rssiLogPath << std::endl;
+        }
+        else
+        {
+            std::cerr << "Warning: could not open RSSI log file " << rssiLogPath << std::endl;
+        }
+
+        NS_LOG_UNCOND("Hybrid controller enabled for " << hotspotConfig.staNodes.GetN()
+                         << " STA UEs; RSSI threshold = "
+                         << g_hybridContext.rssiThresholdDbm << " dBm");
+
+        // Connect WiFi RSSI trace for hybrid quality monitoring
+        Config::Connect("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/MonitorSnifferRx",
+                        MakeCallback(&WifiSnifferRxCallback));
+    }
+
     // LTE overlay: give each STA node a cellular interface (no switching yet)
     LteHybridConfig lteConfig;
     if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
@@ -1394,7 +1536,9 @@ int main(int argc, char* argv[])
                       downloadBytes,
                       voipBytes);
 
-    // LTE-side traffic: additional TCP uploads over LTE to the LTE remote host
+    // LTE-side traffic: additional TCP uploads over LTE to the LTE remote host.
+    // For now this always-on LTE traffic coexists with WiFi; future steps will
+    // selectively enable/disable or reroute flows based on RSSI/PDR.
     if (lteConfig.remoteHost)
     {
         SetupLteApplications(lteConfig,
