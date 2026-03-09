@@ -18,6 +18,7 @@
 #include "ns3/mac48-address.h"
 #include "ns3/simulator.h"
 #include "ns3/sta-wifi-mac.h"
+#include "ns3/wifi-mac-header.h"
 
 // LTE/EPC overlay for hybrid UEs
 #include "ns3/lte-module.h"
@@ -233,6 +234,8 @@ struct HybridControllerContext
     std::vector<HybridUeState> ueStates;
     // Map STA node ID -> STA index from HotspotConfig
     const std::map<uint32_t, uint32_t>* nodeIdToStaIndex{nullptr};
+    // Full hotspot config (for AP/STA association and BSSIDs)
+    const HotspotConfig* hotspotConfig{nullptr};
     // Simple thresholds for RSSI-based switching (can be tuned)
     double rssiThresholdDbm{-80.0};
     Time minSwitchInterval{Seconds(2.0)};
@@ -1275,6 +1278,55 @@ WifiSnifferRxCallback(std::string context,
         return;
     }
 
+    // We only care about RSSI from the AP this STA is currently associated with.
+    if (g_hybridContext.hotspotConfig == nullptr)
+    {
+        return;
+    }
+    const HotspotConfig& hotspot = *g_hybridContext.hotspotConfig;
+    if (staIndex >= hotspot.currentStaApIndex.size())
+    {
+        return;
+    }
+    uint32_t apIndex = hotspot.currentStaApIndex[staIndex];
+    if (apIndex == std::numeric_limits<uint32_t>::max())
+    {
+        // STA not associated yet
+        return;
+    }
+
+    // Find the BSSID of the associated AP (reverse-lookup mesh index -> BSSID)
+    Mac48Address apBssid;
+    bool foundAp = false;
+    for (const auto& kv : hotspot.apBssidToMeshIndex)
+    {
+        if (kv.second == apIndex)
+        {
+            apBssid = kv.first;
+            foundAp = true;
+            break;
+        }
+    }
+    if (!foundAp)
+    {
+        return;
+    }
+
+    // Extract transmitter MAC address from the 802.11 header.
+    WifiMacHeader hdr;
+    Ptr<Packet> pktCopy = packet->Copy();
+    if (!pktCopy->PeekHeader(hdr))
+    {
+        return;
+    }
+    Mac48Address txAddr = hdr.GetAddr2(); // transmitter address
+
+    if (txAddr != apBssid)
+    {
+        // Ignore frames not sent by the associated AP
+        return;
+    }
+
     double rssiDbm = signalNoise.signal;
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
 
@@ -1615,6 +1667,7 @@ int main(int argc, char* argv[])
         g_hybridContext.enabled = true;
         g_hybridContext.ueStates.assign(hotspotConfig.staNodes.GetN(), HybridUeState{});
         g_hybridContext.nodeIdToStaIndex = &hotspotConfig.nodeIdToStaIndex;
+        g_hybridContext.hotspotConfig = &hotspotConfig;
         g_hybridContext.rssiThresholdDbm = rssiThresholdDbm;
         g_hybridContext.minSwitchInterval = Seconds(2.0);
 
