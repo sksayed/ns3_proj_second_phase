@@ -263,6 +263,8 @@ def _compute_summary(rows: Iterable[dict]) -> Optional[dict]:
         "avg_jitter_ms": 0.0,
         "throughput_mbps": 0.0,
     }
+    total_tx_packets = 0
+    total_rx_packets = 0
     counted = 0
     for row in rows:
         if row["tx_packets"] <= 0:
@@ -271,12 +273,18 @@ def _compute_summary(rows: Iterable[dict]) -> Optional[dict]:
         totals["avg_delay_ms"] += row["avg_delay_ms"]
         totals["avg_jitter_ms"] += row["avg_jitter_ms"]
         totals["throughput_mbps"] += row["throughput_mbps"]
+        total_tx_packets += row["tx_packets"]
+        total_rx_packets += row["rx_packets"]
         counted += 1
 
     if counted == 0:
         return None
 
-    return {key: value / counted for key, value in totals.items()}
+    summary = {key: value / counted for key, value in totals.items()}
+    summary["packet_weighted_pdr_percent"] = (
+        (total_rx_packets / total_tx_packets) * 100.0 if total_tx_packets > 0 else 0.0
+    )
+    return summary
 
 
 def _safe_float(value: object, default: float = 0.0) -> float:
@@ -337,10 +345,11 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
             )
         )
     ]
+    timeout_events = [event for event in switch_events if event.get("status") == "timeout"]
     unresolved_events = [
         event
         for event in switch_events
-        if event.get("status") == "unresolved" or event["first_rx_after_switch_s"] < 0.0
+        if event.get("status") == "unresolved"
     ]
     avg_resolved_service_interruption_ms = (
         sum(event["service_interruption_ms"] for event in resolved_events) / len(resolved_events)
@@ -359,6 +368,7 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
         "switches_to_cellular": cellular_switches,
         "switches_to_wifi": wifi_returns,
         "resolved_interruption_count": len(resolved_events),
+        "timeout_interruption_count": len(timeout_events),
         "unresolved_interruption_count": len(unresolved_events),
         "avg_resolved_service_interruption_ms": avg_resolved_service_interruption_ms,
     }
@@ -412,6 +422,9 @@ def _print_report(rows: Iterable[dict], summary: Optional[dict]) -> None:
             f"{'':>12}"
             f"{'':>12}"
             f"{'':>12}"
+        )
+        print(
+            f"Packet-weighted PDR (%): {summary['packet_weighted_pdr_percent']:.2f}"
         )
     print()
 
@@ -479,6 +492,9 @@ def _write_markdown(rows: Iterable[dict],
                 f"| **Average** |  |  | {summary['pdr_percent']:.2f} | {summary['avg_delay_ms']:.2f} | "
                 f"{summary['avg_jitter_ms']:.2f} | {summary['throughput_mbps']:.4f} |  |  |  |\n"
             )
+            md_file.write(
+                f"\n- Packet-weighted PDR (%): **{summary['packet_weighted_pdr_percent']:.2f}**\n"
+            )
 
         if kpi_snapshot is not None:
             md_file.write("\n## Phase 1 KPI Snapshot\n\n")
@@ -495,6 +511,7 @@ def _write_markdown(rows: Iterable[dict],
             )
             md_file.write(
                 f"- Switching outcomes: **resolved={kpi_snapshot['resolved_interruption_count']}**, "
+                f"**timeout={kpi_snapshot['timeout_interruption_count']}**, "
                 f"**unresolved={kpi_snapshot['unresolved_interruption_count']}**\n"
             )
             md_file.write(
@@ -569,6 +586,14 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         default=200.0,
         help="Delay target threshold in milliseconds for KPI compliance (default: %(default)s)",
     )
+    parser.add_argument(
+        "--exclude-zero-rx",
+        action="store_true",
+        help=(
+            "Exclude STA rows with zero received packets from KPI/report outputs. "
+            "Useful to filter inactive/no-reception clients."
+        ),
+    )
     return parser.parse_args(list(argv))
 
 
@@ -583,6 +608,8 @@ def main(argv: Iterable[str] | None = None) -> int:
     flows, classifier = _parse_flowmon(xml_path)
     sta_metrics = _aggregate_sta_metrics(flows, classifier)
     rows = list(_format_rows(sta_metrics, args.sim_time))
+    if args.exclude_zero_rx:
+        rows = [row for row in rows if row.get("rx_packets", 0) > 0]
     summary = _compute_summary(rows)
     switch_log_path = args.switch_log if args.switch_log else xml_path.parent / "wifi-hybrid-switch_log.csv"
     switch_events = _parse_switch_events(switch_log_path)
@@ -605,6 +632,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         print("Switching latency (resolved only, service interruption = recovered-lastOK): none")
     print(
         f"Switching outcomes: resolved={kpi_snapshot['resolved_interruption_count']}, "
+        f"timeout={kpi_snapshot['timeout_interruption_count']}, "
         f"unresolved={kpi_snapshot['unresolved_interruption_count']}"
     )
     print(

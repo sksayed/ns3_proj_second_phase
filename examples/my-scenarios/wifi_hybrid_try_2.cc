@@ -246,6 +246,9 @@ struct HybridUeState
     double pdrWindow{1.0};
     uint64_t lastTxSnapshot{0};
     uint64_t lastRxSnapshot{0};
+    uint64_t lastWindowTxPackets{0};
+    uint64_t lastWindowRxPackets{0};
+    uint32_t wifiReturnGoodCount{0};
     Time lastPdrUpdate{Seconds(0.0)};
     Time lastSwitch{Seconds(0.0)};
     bool hasLastServiceRx{false};
@@ -264,7 +267,7 @@ struct SwitchEventRecord
     double lastOkBeforeS{-1.0};
     double firstRxAfterSwitchS{-1.0};
     double serviceInterruptionMs{-1.0};
-    std::string status{"pending"}; // pending | resolved | unresolved
+    std::string status{"pending"}; // pending | resolved | timeout | unresolved
     double rssiAvgDbm{-1000.0};
     Ipv4Address serviceIp{"0.0.0.0"};
 };
@@ -281,7 +284,12 @@ struct HybridControllerContext
     // Simple thresholds for RSSI-based switching (can be tuned)
     double rssiThresholdDbm{-80.0};
     double pdrThreshold{0.9};
-    Time minSwitchInterval{Seconds(2.0)};
+    double wifiReturnPdrThreshold{0.90};
+    Time minSwitchInterval{Seconds(5.0)};
+    Time switchTimeout{Seconds(5.0)};
+    Time activityWindow{Seconds(2.0)};
+    uint64_t minTxPacketsForSwitch{1};
+    uint32_t wifiReturnGoodChecks{2};
 };
 
 HybridControllerContext g_hybridContext;
@@ -439,12 +447,57 @@ UpdatePerStaPdr(Time interval)
 
         double pdr = (dTx > 0) ? static_cast<double>(dRx) / static_cast<double>(dTx) : 1.0;
         st.pdrWindow = pdr;
+        st.lastWindowTxPackets = dTx;
+        st.lastWindowRxPackets = dRx;
         st.lastTxSnapshot = st.txPackets;
         st.lastRxSnapshot = st.rxPackets;
         st.lastPdrUpdate = now;
     }
 
     Simulator::Schedule(interval, &UpdatePerStaPdr, interval);
+}
+
+static void
+CheckPendingSwitchTimeouts(Time interval)
+{
+    if (!g_hybridContext.enabled)
+    {
+        return;
+    }
+
+    const double nowS = Simulator::Now().GetSeconds();
+    const double timeoutS = g_hybridContext.switchTimeout.GetSeconds();
+    for (auto& st : g_hybridContext.ueStates)
+    {
+        while (!st.pendingSwitchIds.empty())
+        {
+            uint64_t switchId = st.pendingSwitchIds.front();
+            auto it = g_switchEventIndex.find(switchId);
+            if (it == g_switchEventIndex.end())
+            {
+                st.pendingSwitchIds.pop_front();
+                continue;
+            }
+
+            SwitchEventRecord& ev = g_switchEvents[it->second];
+            if (ev.status != "pending")
+            {
+                st.pendingSwitchIds.pop_front();
+                continue;
+            }
+            if ((nowS - ev.applyTimeS) < timeoutS)
+            {
+                break;
+            }
+
+            const double baselineS = (ev.lastOkBeforeS >= 0.0) ? ev.lastOkBeforeS : ev.applyTimeS;
+            ev.serviceInterruptionMs = std::max(0.0, (nowS - baselineS) * 1000.0);
+            ev.status = "timeout";
+            st.pendingSwitchIds.pop_front();
+        }
+    }
+
+    Simulator::Schedule(interval, &CheckPendingSwitchTimeouts, interval);
 }
 
 void
@@ -1976,22 +2029,40 @@ CheckHybridSwitchingLte(const HotspotConfig& hotspotConfig,
 
         if (st.currentPath == USE_WIFI)
         {
-            // Per-STA trigger: switch when RSSI is bad AND window PDR is degraded.
+            // Temporary policy: ignore PDR checks and rely on RSSI + activity guards.
             bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
-            bool pdrBad = (st.pdrWindow < g_hybridContext.pdrThreshold);
+            bool hasRecentService =
+                st.hasLastServiceRx &&
+                ((Simulator::Now() - st.lastServiceRx) <= g_hybridContext.activityWindow);
+            bool hasWindowTx = (st.lastWindowTxPackets >= g_hybridContext.minTxPacketsForSwitch);
 
-            if (rssiBad && pdrBad)
+            if (rssiBad && hasRecentService && hasWindowTx)
             {
                 const Time triggerTime = Simulator::Now();
                 SwitchUeToLte(i, hotspotConfig, lteConfig, triggerTime);
             }
+            st.wifiReturnGoodCount = 0;
         }
         else
         {
-            if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
+            bool rssiGood = (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb));
+            bool hasRecentService =
+                st.hasLastServiceRx &&
+                ((Simulator::Now() - st.lastServiceRx) <= g_hybridContext.activityWindow);
+            bool hasWindowTx = (st.lastWindowTxPackets >= g_hybridContext.minTxPacketsForSwitch);
+            if (rssiGood && hasRecentService && hasWindowTx)
             {
-                const Time triggerTime = Simulator::Now();
-                SwitchUeToWifi(i, hotspotConfig, lteConfig.serviceIp, "lte", triggerTime);
+                st.wifiReturnGoodCount++;
+                if (st.wifiReturnGoodCount >= g_hybridContext.wifiReturnGoodChecks)
+                {
+                    const Time triggerTime = Simulator::Now();
+                    SwitchUeToWifi(i, hotspotConfig, lteConfig.serviceIp, "lte", triggerTime);
+                    st.wifiReturnGoodCount = 0;
+                }
+            }
+            else
+            {
+                st.wifiReturnGoodCount = 0;
             }
         }
     }
@@ -2028,20 +2099,38 @@ CheckHybridSwitchingNr(const HotspotConfig& hotspotConfig,
         if (st.currentPath == USE_WIFI)
         {
             bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
-            bool pdrBad = (st.pdrWindow < g_hybridContext.pdrThreshold);
+            bool hasRecentService =
+                st.hasLastServiceRx &&
+                ((Simulator::Now() - st.lastServiceRx) <= g_hybridContext.activityWindow);
+            bool hasWindowTx = (st.lastWindowTxPackets >= g_hybridContext.minTxPacketsForSwitch);
 
-            if (rssiBad && pdrBad)
+            if (rssiBad && hasRecentService && hasWindowTx)
             {
                 const Time triggerTime = Simulator::Now();
                 SwitchUeToNr(i, hotspotConfig, nrConfig, triggerTime);
             }
+            st.wifiReturnGoodCount = 0;
         }
         else
         {
-            if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
+            bool rssiGood = (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb));
+            bool hasRecentService =
+                st.hasLastServiceRx &&
+                ((Simulator::Now() - st.lastServiceRx) <= g_hybridContext.activityWindow);
+            bool hasWindowTx = (st.lastWindowTxPackets >= g_hybridContext.minTxPacketsForSwitch);
+            if (rssiGood && hasRecentService && hasWindowTx)
             {
-                const Time triggerTime = Simulator::Now();
-                SwitchUeToWifi(i, hotspotConfig, nrConfig.serviceIp, "nr", triggerTime);
+                st.wifiReturnGoodCount++;
+                if (st.wifiReturnGoodCount >= g_hybridContext.wifiReturnGoodChecks)
+                {
+                    const Time triggerTime = Simulator::Now();
+                    SwitchUeToWifi(i, hotspotConfig, nrConfig.serviceIp, "nr", triggerTime);
+                    st.wifiReturnGoodCount = 0;
+                }
+            }
+            else
+            {
+                st.wifiReturnGoodCount = 0;
             }
         }
     }
@@ -2088,7 +2177,13 @@ int main(int argc, char* argv[])
     double rssiThresholdDbm = -80.0;
     double rssiHysteresisDb = 3.0;
     double pdrThreshold = 0.9;
+    double wifiReturnPdrThreshold = 0.90;
     double switchIntervalSec = 0.5;
+    double minSwitchIntervalSec = 5.0;
+    double switchTimeoutSec = 5.0;
+    double activityWindowSec = 2.0;
+    uint32_t minTxPacketsForSwitch = 1;
+    uint32_t wifiReturnGoodChecks = 2;
 
     CommandLine cmd;
     cmd.AddValue("nNodes", "Number of mesh nodes", nNodes);
@@ -2118,7 +2213,13 @@ int main(int argc, char* argv[])
     cmd.AddValue("rssiThresholdDbm", "WiFi RSSI threshold (dBm) below which to switch to cellular", rssiThresholdDbm);
     cmd.AddValue("rssiHysteresisDb", "RSSI hysteresis (dB) above threshold to switch back to WiFi", rssiHysteresisDb);
     cmd.AddValue("pdrThreshold", "Per-STA PDR threshold (0..1) below which switching can trigger", pdrThreshold);
+    cmd.AddValue("wifiReturnPdrThreshold", "Per-STA PDR threshold (0..1) required for cellular->WiFi return", wifiReturnPdrThreshold);
     cmd.AddValue("switchIntervalSec", "Switch controller interval (seconds)", switchIntervalSec);
+    cmd.AddValue("minSwitchIntervalSec", "Minimum dwell time between path switches per STA (seconds)", minSwitchIntervalSec);
+    cmd.AddValue("switchTimeoutSec", "Timeout for pending switch recovery marking (seconds)", switchTimeoutSec);
+    cmd.AddValue("activityWindowSec", "Recent service RX window required to allow WiFi->cell switching (seconds)", activityWindowSec);
+    cmd.AddValue("minTxPacketsForSwitch", "Minimum per-window TX packets required before switching", minTxPacketsForSwitch);
+    cmd.AddValue("wifiReturnGoodChecks", "Consecutive good RSSI checks required before cellular->WiFi return", wifiReturnGoodChecks);
     cmd.Parse(argc, argv);
 
     RngSeedManager::SetSeed(rngSeed);
@@ -2165,6 +2266,35 @@ int main(int argc, char* argv[])
         NS_LOG_WARN("Invalid pdrThreshold value " << pdrThreshold
                     << ", resetting to default 0.9.");
         pdrThreshold = 0.9;
+    }
+    if (wifiReturnPdrThreshold < 0.0 || wifiReturnPdrThreshold > 1.0)
+    {
+        NS_LOG_WARN("Invalid wifiReturnPdrThreshold value " << wifiReturnPdrThreshold
+                    << ", resetting to default 0.90.");
+        wifiReturnPdrThreshold = 0.90;
+    }
+    if (minSwitchIntervalSec < 0.0)
+    {
+        NS_LOG_WARN("Invalid minSwitchIntervalSec value " << minSwitchIntervalSec
+                    << ", resetting to default 5.0.");
+        minSwitchIntervalSec = 5.0;
+    }
+    if (switchTimeoutSec <= 0.0)
+    {
+        NS_LOG_WARN("Invalid switchTimeoutSec value " << switchTimeoutSec
+                    << ", resetting to default 5.0.");
+        switchTimeoutSec = 5.0;
+    }
+    if (activityWindowSec <= 0.0)
+    {
+        NS_LOG_WARN("Invalid activityWindowSec value " << activityWindowSec
+                    << ", resetting to default 2.0.");
+        activityWindowSec = 2.0;
+    }
+    if (wifiReturnGoodChecks == 0)
+    {
+        NS_LOG_WARN("Invalid wifiReturnGoodChecks value 0, resetting to default 2.");
+        wifiReturnGoodChecks = 2;
     }
 
     std::string cellularModeNormalized = cellularMode;
@@ -2242,7 +2372,12 @@ int main(int argc, char* argv[])
         g_hybridContext.hotspotConfig = &hotspotConfig;
         g_hybridContext.rssiThresholdDbm = rssiThresholdDbm;
         g_hybridContext.pdrThreshold = pdrThreshold;
-        g_hybridContext.minSwitchInterval = Seconds(2.0);
+        g_hybridContext.wifiReturnPdrThreshold = wifiReturnPdrThreshold;
+        g_hybridContext.minSwitchInterval = Seconds(minSwitchIntervalSec);
+        g_hybridContext.switchTimeout = Seconds(switchTimeoutSec);
+        g_hybridContext.activityWindow = Seconds(activityWindowSec);
+        g_hybridContext.minTxPacketsForSwitch = minTxPacketsForSwitch;
+        g_hybridContext.wifiReturnGoodChecks = wifiReturnGoodChecks;
 
         // Open RSSI log file in the chosen output directory
         std::string rssiLogPath = outputDir + "/wifi-hybrid-rssi_log.csv";
@@ -2283,6 +2418,12 @@ int main(int argc, char* argv[])
                   << " (threshold=" << rssiThresholdDbm << " dBm"
                   << ", hysteresis=" << rssiHysteresisDb << " dB"
                   << ", pdrThreshold=" << pdrThreshold
+                  << ", wifiReturnPdrThreshold=" << wifiReturnPdrThreshold
+                  << ", minSwitchInterval=" << minSwitchIntervalSec << " s"
+                  << ", switchTimeout=" << switchTimeoutSec << " s"
+                  << ", activityWindow=" << activityWindowSec << " s"
+                  << ", minTxPacketsForSwitch=" << minTxPacketsForSwitch
+                  << ", wifiReturnGoodChecks=" << wifiReturnGoodChecks
                   << ", interval=" << switchIntervalSec << " s)"
                   << std::endl;
 
@@ -2319,6 +2460,7 @@ int main(int argc, char* argv[])
     if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
         Simulator::Schedule(Seconds(1.0), &UpdatePerStaPdr, Seconds(1.0));
+        Simulator::Schedule(Seconds(switchIntervalSec), &CheckPendingSwitchTimeouts, Seconds(switchIntervalSec));
     }
 
     // Connect cellular PHY quality traces (RSRP/SINR) to the same CSV log as WiFi RSSI.
@@ -2445,7 +2587,7 @@ int main(int argc, char* argv[])
         {
             if (ev.status == "pending")
             {
-                ev.status = "unresolved";
+                ev.status = "timeout";
                 // No RX observed after switch until simulation end.
                 // Record a lower-bound interruption duration up to sim stop.
                 double baselineS = (ev.lastOkBeforeS >= 0.0) ? ev.lastOkBeforeS : ev.applyTimeS;
