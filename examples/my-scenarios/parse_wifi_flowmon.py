@@ -302,6 +302,7 @@ def _parse_switch_events(switch_log_path: Path) -> List[dict]:
                 "last_ok_before_s": _safe_float(row.get("last_ok_before_s"), -1.0),
                 "first_rx_after_switch_s": _safe_float(row.get("first_rx_after_switch_s"), -1.0),
                 "service_interruption_ms": _safe_float(row.get("service_interruption_ms"), -1.0),
+                "status": (row.get("status") or "").strip().lower(),
                 "rssi_avg_dbm": _safe_float(row.get("rssi_avg_dbm")),
                 "service_ip": (row.get("service_ip") or "").strip(),
             }
@@ -322,10 +323,28 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
 
     cellular_switches = sum(1 for event in switch_events if event["to"] in {"lte", "nr"})
     wifi_returns = sum(1 for event in switch_events if event["to"] == "wifi")
-    interruption_events = [event for event in switch_events if event["service_interruption_ms"] >= 0.0]
-    avg_service_interruption_ms = (
-        sum(event["service_interruption_ms"] for event in interruption_events) / len(interruption_events)
-        if interruption_events
+    # KPI latency must represent completed recoveries only.
+    # Prefer explicit status when available; fallback to first_rx_after_switch_s.
+    resolved_events = [
+        event
+        for event in switch_events
+        if event["service_interruption_ms"] >= 0.0
+        and (
+            event.get("status") == "resolved"
+            or (
+                event.get("status") in {"", "pending"}
+                and event["first_rx_after_switch_s"] >= 0.0
+            )
+        )
+    ]
+    unresolved_events = [
+        event
+        for event in switch_events
+        if event.get("status") == "unresolved" or event["first_rx_after_switch_s"] < 0.0
+    ]
+    avg_resolved_service_interruption_ms = (
+        sum(event["service_interruption_ms"] for event in resolved_events) / len(resolved_events)
+        if resolved_events
         else 0.0
     )
 
@@ -339,8 +358,9 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
         "switch_event_count": len(switch_events),
         "switches_to_cellular": cellular_switches,
         "switches_to_wifi": wifi_returns,
-        "observed_interruption_count": len(interruption_events),
-        "avg_service_interruption_ms": avg_service_interruption_ms,
+        "resolved_interruption_count": len(resolved_events),
+        "unresolved_interruption_count": len(unresolved_events),
+        "avg_resolved_service_interruption_ms": avg_resolved_service_interruption_ms,
     }
 
 
@@ -469,23 +489,19 @@ def _write_markdown(rows: Iterable[dict],
                 f"({kpi_snapshot['delay_compliance_pct']:.2f}%)**\n"
             )
             md_file.write(
-                f"- Aggregate reception rate (sum throughput, active clients): "
-                f"**{kpi_snapshot['aggregate_rx_mbps']:.4f} Mbps**\n"
-            )
-            md_file.write(
-                f"- Data reception rate for >=3 clients (Phase 1 KPI): "
-                f"**{kpi_snapshot['multi_client_reception_rate_mbps']:.4f} Mbps**\n"
-            )
-            md_file.write(
                 f"- Switch events: **{kpi_snapshot['switch_event_count']}** "
                 f"(to cellular: {kpi_snapshot['switches_to_cellular']}, "
                 f"to WiFi: {kpi_snapshot['switches_to_wifi']})\n"
             )
             md_file.write(
-                f"- Avg switching latency (service interruption = recovered-lastOK): "
-                f"**{kpi_snapshot['avg_service_interruption_ms']:.3f} ms**\n"
-                if kpi_snapshot["observed_interruption_count"] > 0
-                else "- Avg switching latency (service interruption = recovered-lastOK): **N/A**\n"
+                f"- Switching outcomes: **resolved={kpi_snapshot['resolved_interruption_count']}**, "
+                f"**unresolved={kpi_snapshot['unresolved_interruption_count']}**\n"
+            )
+            md_file.write(
+                f"- Avg resolved switching latency (ms, service interruption = recovered-lastOK): "
+                f"**{kpi_snapshot['avg_resolved_service_interruption_ms']:.3f} ms**\n"
+                if kpi_snapshot["resolved_interruption_count"] > 0
+                else "- Avg resolved switching latency (ms, service interruption = recovered-lastOK): **N/A**\n"
             )
 
         if switch_events is not None:
@@ -580,13 +596,17 @@ def main(argv: Iterable[str] | None = None) -> int:
         )
     else:
         print("Switching events: none")
-    if kpi_snapshot["observed_interruption_count"] > 0:
+    if kpi_snapshot["resolved_interruption_count"] > 0:
         print(
-            f"Switching latency (service interruption = recovered-lastOK): "
-            f"{kpi_snapshot['avg_service_interruption_ms']:.3f} ms"
+            f"Switching latency (resolved only, service interruption = recovered-lastOK): "
+            f"{kpi_snapshot['avg_resolved_service_interruption_ms']:.3f} ms"
         )
     else:
-        print("Switching latency (service interruption = recovered-lastOK): none")
+        print("Switching latency (resolved only, service interruption = recovered-lastOK): none")
+    print(
+        f"Switching outcomes: resolved={kpi_snapshot['resolved_interruption_count']}, "
+        f"unresolved={kpi_snapshot['unresolved_interruption_count']}"
+    )
     print(
         f"Delay target compliance <= {args.delay_target_ms:.1f} ms: "
         f"{kpi_snapshot['delay_compliant_clients']}/{kpi_snapshot['active_clients']} "

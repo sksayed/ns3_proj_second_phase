@@ -21,13 +21,17 @@ class Scenario:
     seed: int
     hysteresis: int
     threshold: int
+    pdr_threshold: float
     sim_time: int
+    sta_speed_mps: int
 
     @property
     def output_dir(self) -> str:
+        pdr_tag = f"{self.pdr_threshold:.2f}".replace(".", "p")
         return (
             f"{self.phase}_{self.mode}_{self.band}_sta{self.sta}_"
-            f"{self.payload}_seed{self.seed}_th{self.threshold}_h{self.hysteresis}_t{self.sim_time}"
+            f"{self.payload}_seed{self.seed}_th{self.threshold}_h{self.hysteresis}_"
+            f"pdr{pdr_tag}_spd{self.sta_speed_mps}_t{self.sim_time}"
         )
 
 
@@ -43,9 +47,9 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Run WiFi-hybrid scenario matrix and parse per-run RSSI/network reports.\n"
             "Phases:\n"
-            "  screening: sta=[5,10,15], payload=50kb, seed=6, h=[2,3,4]\n"
+            "  screening: sta=[5,10,15], payload=50kb, seed=6, h=[2,3,4], speed=[5,10,15]\n"
             "  full:      sta=[5,10,15], payload=[10kb,50kb,1mb], seed=[6,7,8], "
-            "h=[best_hysteresis]"
+            "h=[best_hysteresis], speed=[5,10,15]"
         )
     )
     p.add_argument(
@@ -67,9 +71,17 @@ def parse_args() -> argparse.Namespace:
         help="WiFi RSSI threshold in dBm (default: %(default)s).",
     )
     p.add_argument(
+        "--pdr-thresholds",
+        default="0.9",
+        help=(
+            "Comma-separated per-STA PDR thresholds for switching trigger, "
+            "each in range [0,1] (default: %(default)s)."
+        ),
+    )
+    p.add_argument(
         "--sim-time",
         type=int,
-        default=30,
+        default=90,
         help="Simulation time in seconds (default: %(default)s).",
     )
     p.add_argument(
@@ -98,48 +110,73 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def parse_pdr_thresholds(raw: str) -> List[float]:
+    values: List[float] = []
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        val = float(token)
+        if val < 0.0 or val > 1.0:
+            raise ValueError(f"Invalid PDR threshold {val}; expected 0..1")
+        values.append(round(val, 4))
+    if not values:
+        raise ValueError("At least one PDR threshold is required")
+    return values
+
+
 def build_screening_scenarios(args: argparse.Namespace) -> List[Scenario]:
     scenarios: List[Scenario] = []
+    pdr_thresholds = parse_pdr_thresholds(args.pdr_thresholds)
     for mode in ("lte", "nr"):
         for band in ("2g", "5g"):
             for sta in (5, 10, 15):
-                for h in (2, 3, 4):
-                    scenarios.append(
-                        Scenario(
-                            phase="screening",
-                            mode=mode,
-                            band=band,
-                            sta=sta,
-                            payload="50kb",
-                            seed=6,
-                            hysteresis=h,
-                            threshold=args.threshold,
-                            sim_time=args.sim_time,
-                        )
-                    )
+                for speed in (5, 10, 15):
+                    for h in (2, 3, 4):
+                        for pdr in pdr_thresholds:
+                            scenarios.append(
+                                Scenario(
+                                    phase="screening",
+                                    mode=mode,
+                                    band=band,
+                                    sta=sta,
+                                    payload="50kb",
+                                    seed=6,
+                                    hysteresis=h,
+                                    threshold=args.threshold,
+                                    pdr_threshold=pdr,
+                                    sim_time=args.sim_time,
+                                    sta_speed_mps=speed,
+                                )
+                            )
     return scenarios
 
 
 def build_full_scenarios(args: argparse.Namespace) -> List[Scenario]:
     scenarios: List[Scenario] = []
+    pdr_thresholds = parse_pdr_thresholds(args.pdr_thresholds)
     for mode in ("lte", "nr"):
         for band in ("2g", "5g"):
             for sta in (5, 10, 15):
-                for payload in ("10kb", "50kb", "1mb"):
-                    for seed in (6, 7, 8):
-                        scenarios.append(
-                            Scenario(
-                                phase="full",
-                                mode=mode,
-                                band=band,
-                                sta=sta,
-                                payload=payload,
-                                seed=seed,
-                                hysteresis=args.best_hysteresis,
-                                threshold=args.threshold,
-                                sim_time=args.sim_time,
-                            )
-                        )
+                for speed in (5, 10, 15):
+                    for payload in ("10kb", "50kb", "1mb"):
+                        for seed in (6, 7, 8):
+                            for pdr in pdr_thresholds:
+                                scenarios.append(
+                                    Scenario(
+                                        phase="full",
+                                        mode=mode,
+                                        band=band,
+                                        sta=sta,
+                                        payload=payload,
+                                        seed=seed,
+                                        hysteresis=args.best_hysteresis,
+                                        threshold=args.threshold,
+                                        pdr_threshold=pdr,
+                                        sim_time=args.sim_time,
+                                        sta_speed_mps=speed,
+                                    )
+                                )
     return scenarios
 
 
@@ -189,9 +226,12 @@ def run_one(
         f"--simTime={sc.sim_time} "
         f"--rssiThresholdDbm={sc.threshold} "
         f"--rssiHysteresisDb={sc.hysteresis} "
+        f"--pdrThreshold={sc.pdr_threshold} "
         f"--rngSeed={sc.seed} "
         f"--uploadBytes={payload_bytes} "
         f"--downloadBytes={payload_bytes} "
+        f"--staSpeedMin={sc.sta_speed_mps} "
+        f"--staSpeedMax={sc.sta_speed_mps} "
         f"--outputDir={out_dir}"
     )
     cmd = ["./ns3", "run", run_str]
@@ -289,7 +329,9 @@ def main() -> int:
                 "seed": sc.seed,
                 "threshold": sc.threshold,
                 "hysteresis": sc.hysteresis,
+                    "pdr_threshold": sc.pdr_threshold,
                 "sim_time": sc.sim_time,
+                "sta_speed_mps": sc.sta_speed_mps,
             }
         )
 
@@ -311,7 +353,9 @@ def main() -> int:
             "seed",
             "threshold",
             "hysteresis",
+            "pdr_threshold",
             "sim_time",
+            "sta_speed_mps",
         ]
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()

@@ -35,6 +35,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <deque>
 #include <algorithm>
 #include <cctype>
 #include <map>
@@ -249,15 +250,23 @@ struct HybridUeState
     Time lastSwitch{Seconds(0.0)};
     bool hasLastServiceRx{false};
     Time lastServiceRx{Seconds(0.0)};
-    bool pendingObservedSwitch{false};
-    Time pendingTriggerTime{Seconds(0.0)};
-    Time pendingApplyTime{Seconds(0.0)};
-    bool pendingHasLastOk{false};
-    Time pendingLastOkBefore{Seconds(0.0)};
-    std::string pendingFrom{"wifi"};
-    std::string pendingTo{"wifi"};
-    double pendingRssiDbm{-1000.0};
-    Ipv4Address pendingServiceIp{"0.0.0.0"};
+    std::deque<uint64_t> pendingSwitchIds;
+};
+
+struct SwitchEventRecord
+{
+    uint64_t switchId{0};
+    uint32_t staIndex{0};
+    std::string from{"wifi"};
+    std::string to{"wifi"};
+    double triggerTimeS{0.0};
+    double applyTimeS{0.0};
+    double lastOkBeforeS{-1.0};
+    double firstRxAfterSwitchS{-1.0};
+    double serviceInterruptionMs{-1.0};
+    std::string status{"pending"}; // pending | resolved | unresolved
+    double rssiAvgDbm{-1000.0};
+    Ipv4Address serviceIp{"0.0.0.0"};
 };
 
 struct HybridControllerContext
@@ -271,6 +280,7 @@ struct HybridControllerContext
     const HotspotConfig* hotspotConfig{nullptr};
     // Simple thresholds for RSSI-based switching (can be tuned)
     double rssiThresholdDbm{-80.0};
+    double pdrThreshold{0.9};
     Time minSwitchInterval{Seconds(2.0)};
 };
 
@@ -279,6 +289,9 @@ std::ofstream g_rssiLog;
 bool g_rssiLogOpen{false};
 std::ofstream g_switchLog;
 bool g_switchLogOpen{false};
+uint64_t g_nextSwitchId{1};
+std::vector<SwitchEventRecord> g_switchEvents;
+std::map<uint64_t, std::size_t> g_switchEventIndex;
 
 static bool
 ExtractNodeIdFromContext(const std::string& context, uint32_t& nodeIdOut)
@@ -307,6 +320,77 @@ ExtractNodeIdFromContext(const std::string& context, uint32_t& nodeIdOut)
     }
 }
 
+static uint64_t
+CreateSwitchEvent(uint32_t staIndex,
+                  const std::string& fromPath,
+                  const std::string& toPath,
+                  Time triggerTime,
+                  double rssiAvgDbm,
+                  Ipv4Address serviceIp)
+{
+    if (!g_hybridContext.enabled || staIndex >= g_hybridContext.ueStates.size())
+    {
+        return 0;
+    }
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    SwitchEventRecord ev;
+    ev.switchId = g_nextSwitchId++;
+    ev.staIndex = staIndex;
+    ev.from = fromPath;
+    ev.to = toPath;
+    ev.triggerTimeS = triggerTime.GetSeconds();
+    ev.applyTimeS = Simulator::Now().GetSeconds();
+    ev.lastOkBeforeS = st.hasLastServiceRx ? st.lastServiceRx.GetSeconds() : -1.0;
+    ev.rssiAvgDbm = rssiAvgDbm;
+    ev.serviceIp = serviceIp;
+    ev.status = "pending";
+
+    g_switchEventIndex[ev.switchId] = g_switchEvents.size();
+    g_switchEvents.push_back(ev);
+    st.pendingSwitchIds.push_back(ev.switchId);
+    return ev.switchId;
+}
+
+static void
+ResolvePendingSwitchOnRx(uint32_t staIndex, Time firstRxTime)
+{
+    if (!g_hybridContext.enabled || staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+
+    if (st.pendingSwitchIds.empty())
+    {
+        return;
+    }
+
+    uint64_t switchId = st.pendingSwitchIds.front();
+    auto it = g_switchEventIndex.find(switchId);
+    if (it == g_switchEventIndex.end())
+    {
+        st.pendingSwitchIds.pop_front();
+        return;
+    }
+
+    SwitchEventRecord& ev = g_switchEvents[it->second];
+    ev.firstRxAfterSwitchS = firstRxTime.GetSeconds();
+    if (ev.lastOkBeforeS >= 0.0)
+    {
+        ev.serviceInterruptionMs = (ev.firstRxAfterSwitchS - ev.lastOkBeforeS) * 1000.0;
+    }
+    else
+    {
+        // If there was no prior successful RX snapshot, use switch apply time
+        // as a fallback baseline so early/cold-start switches still get a
+        // meaningful recovery delay value.
+        ev.serviceInterruptionMs = (ev.firstRxAfterSwitchS - ev.applyTimeS) * 1000.0;
+    }
+    ev.status = "resolved";
+    st.pendingSwitchIds.pop_front();
+}
+
 void
 HandleServiceSinkRx(uint32_t staIndex, Ptr<const Packet> packet, const Address& from)
 {
@@ -322,27 +406,7 @@ HandleServiceSinkRx(uint32_t staIndex, Ptr<const Packet> packet, const Address& 
     st.rxPackets++;
     st.lastServiceRx = Simulator::Now();
     st.hasLastServiceRx = true;
-
-    if (st.pendingObservedSwitch && Simulator::Now() >= st.pendingApplyTime)
-    {
-        const Time firstRx = Simulator::Now();
-        const double interruptionMs =
-            st.pendingHasLastOk ? (firstRx - st.pendingLastOkBefore).GetMilliSeconds() : -1.0;
-
-        if (g_switchLogOpen)
-        {
-            g_switchLog << staIndex << ","
-                        << st.pendingFrom << ","
-                        << st.pendingTo << ","
-                        << (st.pendingHasLastOk ? st.pendingLastOkBefore.GetSeconds() : -1.0) << ","
-                        << firstRx.GetSeconds() << ","
-                        << interruptionMs << ","
-                        << st.pendingRssiDbm << ","
-                        << st.pendingServiceIp << "\n";
-        }
-
-        st.pendingObservedSwitch = false;
-    }
+    ResolvePendingSwitchOnRx(staIndex, Simulator::Now());
 }
 
 static void
@@ -1816,16 +1880,7 @@ SwitchUeToLte(uint32_t staIndex,
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.currentPath = USE_LTE;
     st.lastSwitch = Simulator::Now();
-
-    st.pendingObservedSwitch = true;
-    st.pendingTriggerTime = triggerTime;
-    st.pendingApplyTime = Simulator::Now();
-    st.pendingHasLastOk = st.hasLastServiceRx;
-    st.pendingLastOkBefore = st.lastServiceRx;
-    st.pendingFrom = "wifi";
-    st.pendingTo = "lte";
-    st.pendingRssiDbm = st.rssiAvgDbm;
-    st.pendingServiceIp = lteConfig.serviceIp;
+    CreateSwitchEvent(staIndex, "wifi", "lte", triggerTime, st.rssiAvgDbm, lteConfig.serviceIp);
 }
 
 static void
@@ -1863,16 +1918,7 @@ SwitchUeToWifi(uint32_t staIndex,
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.currentPath = USE_WIFI;
     st.lastSwitch = Simulator::Now();
-
-    st.pendingObservedSwitch = true;
-    st.pendingTriggerTime = triggerTime;
-    st.pendingApplyTime = Simulator::Now();
-    st.pendingHasLastOk = st.hasLastServiceRx;
-    st.pendingLastOkBefore = st.lastServiceRx;
-    st.pendingFrom = fromPath;
-    st.pendingTo = "wifi";
-    st.pendingRssiDbm = st.rssiAvgDbm;
-    st.pendingServiceIp = serviceIp;
+    CreateSwitchEvent(staIndex, fromPath, "wifi", triggerTime, st.rssiAvgDbm, serviceIp);
 }
 
 static void
@@ -1900,16 +1946,7 @@ SwitchUeToNr(uint32_t staIndex,
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.currentPath = USE_NR;
     st.lastSwitch = Simulator::Now();
-
-    st.pendingObservedSwitch = true;
-    st.pendingTriggerTime = triggerTime;
-    st.pendingApplyTime = Simulator::Now();
-    st.pendingHasLastOk = st.hasLastServiceRx;
-    st.pendingLastOkBefore = st.lastServiceRx;
-    st.pendingFrom = "wifi";
-    st.pendingTo = "nr";
-    st.pendingRssiDbm = st.rssiAvgDbm;
-    st.pendingServiceIp = nrConfig.serviceIp;
+    CreateSwitchEvent(staIndex, "wifi", "nr", triggerTime, st.rssiAvgDbm, nrConfig.serviceIp);
 }
 
 static void
@@ -1939,10 +1976,9 @@ CheckHybridSwitchingLte(const HotspotConfig& hotspotConfig,
 
         if (st.currentPath == USE_WIFI)
         {
-            // Per-STA combined trigger: RSSI below threshold and PDR window degraded.
-            const double pdrThreshold = 0.9; // 90% window PDR
+            // Per-STA trigger: switch when RSSI is bad AND window PDR is degraded.
             bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
-            bool pdrBad = (st.pdrWindow < pdrThreshold);
+            bool pdrBad = (st.pdrWindow < g_hybridContext.pdrThreshold);
 
             if (rssiBad && pdrBad)
             {
@@ -1991,9 +2027,8 @@ CheckHybridSwitchingNr(const HotspotConfig& hotspotConfig,
 
         if (st.currentPath == USE_WIFI)
         {
-            const double pdrThreshold = 0.9; // 90% window PDR
             bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
-            bool pdrBad = (st.pdrWindow < pdrThreshold);
+            bool pdrBad = (st.pdrWindow < g_hybridContext.pdrThreshold);
 
             if (rssiBad && pdrBad)
             {
@@ -2031,7 +2066,7 @@ int main(int argc, char* argv[])
     uint32_t packetSize = kDefaultPacketSize;    // Packet size in bytes
     double nodeSpacing = 150.0;    // Approximate spacing used for fallback positioning (meters)
     uint32_t tcpPacketSize = kDefaultPacketSize; // TCP packet size in bytes (legacy alias for packetSize)
-    double simTime = 30.0;         // Simulation time (seconds)
+    double simTime = 90.0;         // Simulation time (seconds)
     bool enableHotspot = true;     // Enable hotspot (AP + STA) feature
     uint32_t apNodeIndex = 3;      // Which mesh node acts as AP (0-based)
     uint32_t numStaNodes = 1;     // Single STA client (was 10)
@@ -2052,6 +2087,7 @@ int main(int argc, char* argv[])
     bool enableSwitching = true;
     double rssiThresholdDbm = -80.0;
     double rssiHysteresisDb = 3.0;
+    double pdrThreshold = 0.9;
     double switchIntervalSec = 0.5;
 
     CommandLine cmd;
@@ -2081,6 +2117,7 @@ int main(int argc, char* argv[])
     cmd.AddValue("enableSwitching", "Enable RSSI-based WiFi<->cellular switching for service traffic", enableSwitching);
     cmd.AddValue("rssiThresholdDbm", "WiFi RSSI threshold (dBm) below which to switch to cellular", rssiThresholdDbm);
     cmd.AddValue("rssiHysteresisDb", "RSSI hysteresis (dB) above threshold to switch back to WiFi", rssiHysteresisDb);
+    cmd.AddValue("pdrThreshold", "Per-STA PDR threshold (0..1) below which switching can trigger", pdrThreshold);
     cmd.AddValue("switchIntervalSec", "Switch controller interval (seconds)", switchIntervalSec);
     cmd.Parse(argc, argv);
 
@@ -2122,6 +2159,12 @@ int main(int argc, char* argv[])
                      << "], resetting to defaults [1.0, 3.0] m/s.");
         staSpeedMin = 1.0;
         staSpeedMax = 3.0;
+    }
+    if (pdrThreshold < 0.0 || pdrThreshold > 1.0)
+    {
+        NS_LOG_WARN("Invalid pdrThreshold value " << pdrThreshold
+                    << ", resetting to default 0.9.");
+        pdrThreshold = 0.9;
     }
 
     std::string cellularModeNormalized = cellularMode;
@@ -2198,6 +2241,7 @@ int main(int argc, char* argv[])
         g_hybridContext.nodeIdToStaIndex = &hotspotConfig.nodeIdToStaIndex;
         g_hybridContext.hotspotConfig = &hotspotConfig;
         g_hybridContext.rssiThresholdDbm = rssiThresholdDbm;
+        g_hybridContext.pdrThreshold = pdrThreshold;
         g_hybridContext.minSwitchInterval = Seconds(2.0);
 
         // Open RSSI log file in the chosen output directory
@@ -2225,8 +2269,8 @@ int main(int argc, char* argv[])
         {
             g_switchLogOpen = true;
             g_switchLog
-                << "sta_index,from,to,last_ok_before_s,first_rx_after_switch_s,service_interruption_ms,"
-                << "rssi_avg_dbm,service_ip\n";
+                << "switch_id,sta_index,from,to,trigger_time_s,apply_time_s,last_ok_before_s,"
+                << "first_rx_after_switch_s,service_interruption_ms,status,rssi_avg_dbm,service_ip\n";
             std::cout << "Hybrid switch log will be written to " << switchLogPath << std::endl;
         }
         else
@@ -2238,6 +2282,7 @@ int main(int argc, char* argv[])
                   << " [cellular mode=" << cellularMode << "]"
                   << " (threshold=" << rssiThresholdDbm << " dBm"
                   << ", hysteresis=" << rssiHysteresisDb << " dB"
+                  << ", pdrThreshold=" << pdrThreshold
                   << ", interval=" << switchIntervalSec << " s)"
                   << std::endl;
 
@@ -2396,6 +2441,29 @@ int main(int argc, char* argv[])
     }
     if (g_switchLogOpen)
     {
+        for (auto& ev : g_switchEvents)
+        {
+            if (ev.status == "pending")
+            {
+                ev.status = "unresolved";
+                // No RX observed after switch until simulation end.
+                // Record a lower-bound interruption duration up to sim stop.
+                double baselineS = (ev.lastOkBeforeS >= 0.0) ? ev.lastOkBeforeS : ev.applyTimeS;
+                ev.serviceInterruptionMs = std::max(0.0, (simTime - baselineS) * 1000.0);
+            }
+            g_switchLog << ev.switchId << ","
+                        << ev.staIndex << ","
+                        << ev.from << ","
+                        << ev.to << ","
+                        << ev.triggerTimeS << ","
+                        << ev.applyTimeS << ","
+                        << ev.lastOkBeforeS << ","
+                        << ev.firstRxAfterSwitchS << ","
+                        << ev.serviceInterruptionMs << ","
+                        << ev.status << ","
+                        << ev.rssiAvgDbm << ","
+                        << ev.serviceIp << "\n";
+        }
         g_switchLog.flush();
         g_switchLog.close();
         g_switchLogOpen = false;
