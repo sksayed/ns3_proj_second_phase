@@ -46,6 +46,8 @@ build_example(
     ${libnetwork}
     ${libinternet}
     ${liblte}
+    ${libnr}
+    ${libnr-epc}
     ${libmesh}
     ${libwifi}
     ${libpoint-to-point}

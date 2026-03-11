@@ -22,9 +22,13 @@
 
 // LTE/EPC overlay for hybrid UEs
 #include "ns3/lte-module.h"
+#include "ns3/nr-helper.h"
+#include "ns3/nr-module.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/hybrid-buildings-propagation-loss-model.h"
 #include "ns3/isotropic-antenna-model.h"
+#include "ns3/ideal-beamforming-algorithm.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -197,6 +201,21 @@ struct LteHybridConfig
     Ipv4Address serviceIp;
 };
 
+// NR overlay configuration: single macro gNB + per-UE NR interfaces
+struct NrHybridConfig
+{
+    NodeContainer gnbNodes;
+    NetDeviceContainer gnbDevices;
+    NetDeviceContainer ueDevices;
+    Ptr<NrHelper> nrHelper;
+    Ptr<NrPointToPointEpcHelper> epcHelper;
+    Ipv4InterfaceContainer ueIfaces;
+    // NR gateway on UE side (from EPC)
+    Ipv4Address ueGateway;
+    // Service destination IP (same as WiFi server IP)
+    Ipv4Address serviceIp;
+};
+
 namespace
 {
 struct StaRoamingContext
@@ -248,13 +267,14 @@ bool g_switchLogOpen{false};
 void
 RemoveExistingHostRoute(Ptr<Ipv4StaticRouting> routing, const Ipv4Address& destination)
 {
-    for (uint32_t idx = 0; idx < routing->GetNRoutes(); ++idx)
+    // Remove all host routes to this destination so switching leaves exactly
+    // one active host route (the one added by the current path decision).
+    for (int32_t idx = static_cast<int32_t>(routing->GetNRoutes()) - 1; idx >= 0; --idx)
     {
-        Ipv4RoutingTableEntry entry = routing->GetRoute(idx);
+        Ipv4RoutingTableEntry entry = routing->GetRoute(static_cast<uint32_t>(idx));
         if (entry.IsHost() && entry.GetDest() == destination)
         {
-            routing->RemoveRoute(idx);
-            return;
+            routing->RemoveRoute(static_cast<uint32_t>(idx));
         }
     }
 }
@@ -905,6 +925,115 @@ LteHybridConfig SetupLteHybridOverlay(const NodeContainer& ueNodes,
     return cfg;
 }
 
+// Give each WiFi STA node an NR (5G) interface using a single macro gNB.
+// This sets up NR/EPC and assigns NR IPv4 addresses to each UE, then connects
+// PGW to ISP router so UEs can reach the same service IP over WiFi or NR.
+NrHybridConfig SetupNrHybridOverlay(const NodeContainer& ueNodes,
+                                    Ptr<Node> ispRouter,
+                                    Ipv4Address serviceIp,
+                                    double fieldSize)
+{
+    NS_LOG_FUNCTION("Setting up NR overlay for " << ueNodes.GetN() << " UEs");
+
+    NrHybridConfig cfg;
+    if (ueNodes.GetN() == 0)
+    {
+        return cfg;
+    }
+
+    cfg.gnbNodes.Create(1);
+    MobilityHelper gnbMobility;
+    Ptr<ListPositionAllocator> gnbPosAlloc = CreateObject<ListPositionAllocator>();
+    gnbPosAlloc->Add(Vector(fieldSize / 2.0, fieldSize / 2.0, 25.0));
+    gnbMobility.SetPositionAllocator(gnbPosAlloc);
+    gnbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    gnbMobility.Install(cfg.gnbNodes);
+    BuildingsHelper::Install(cfg.gnbNodes);
+
+    cfg.nrHelper = CreateObject<NrHelper>();
+    cfg.epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    cfg.nrHelper->SetEpcHelper(cfg.epcHelper);
+
+    // Align UE TX power with hotspot client profile.
+    Config::SetDefault("ns3::NrUePhy::TxPower", DoubleValue(15.0));
+    cfg.nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(1));
+    cfg.nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(1));
+    Ptr<IsotropicAntennaModel> ueAntenna = CreateObject<IsotropicAntennaModel>();
+    ueAntenna->SetAttribute("Gain", DoubleValue(1.0));
+    cfg.nrHelper->SetUeAntennaAttribute("AntennaElement", PointerValue(ueAntenna));
+
+    Ptr<IdealBeamformingHelper> beamformingHelper = CreateObject<IdealBeamformingHelper>();
+    cfg.nrHelper->SetBeamformingHelper(beamformingHelper);
+    beamformingHelper->SetAttribute("BeamformingMethod",
+                                    TypeIdValue(DirectPathBeamforming::GetTypeId()));
+
+    const double centralFrequency = 3.5e9;
+    const double bandwidth = 100e6;
+    CcBwpCreator ccBwpCreator;
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, 1);
+    bandConf.m_numBwp = 1;
+    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
+
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories("RMa", "Default", "ThreeGpp");
+    channelHelper->ConfigurePropagationFactory(HybridBuildingsPropagationLossModel::GetTypeId());
+    channelHelper->SetPathlossAttribute("Frequency", DoubleValue(centralFrequency));
+    channelHelper->AssignChannelsToBands({band});
+
+    BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
+    cfg.gnbDevices = cfg.nrHelper->InstallGnbDevice(cfg.gnbNodes, allBwps);
+    cfg.ueDevices = cfg.nrHelper->InstallUeDevice(ueNodes, allBwps);
+    cfg.ueIfaces = cfg.epcHelper->AssignUeIpv4Address(NetDeviceContainer(cfg.ueDevices));
+    cfg.nrHelper->AttachToClosestGnb(cfg.ueDevices, cfg.gnbDevices);
+
+    cfg.ueGateway = cfg.epcHelper->GetUeDefaultGatewayAddress();
+    cfg.serviceIp = serviceIp;
+
+    Ptr<Node> pgw = cfg.epcHelper->GetPgwNode();
+    NodeContainer epcCore;
+    epcCore.Add(pgw);
+    MobilityHelper epcMobility;
+    Ptr<ListPositionAllocator> epcPos = CreateObject<ListPositionAllocator>();
+    epcPos->Add(Vector(fieldSize * 0.5, fieldSize + 100.0, 0.0));
+    epcMobility.SetPositionAllocator(epcPos);
+    epcMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    epcMobility.Install(epcCore);
+
+    PointToPointHelper p2p;
+    p2p.SetDeviceAttribute("DataRate", StringValue("100Gbps"));
+    p2p.SetChannelAttribute("Delay", StringValue("1ms"));
+    NetDeviceContainer pgwIspDevices = p2p.Install(pgw, ispRouter);
+
+    Ipv4AddressHelper p2pAddr;
+    p2pAddr.SetBase("2.0.0.0", "255.0.0.0");
+    Ipv4InterfaceContainer pgwIspIf = p2pAddr.Assign(pgwIspDevices);
+    Ipv4Address pgwP2pIp = pgwIspIf.GetAddress(0);
+    Ipv4Address ispP2pIp = pgwIspIf.GetAddress(1);
+
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+    {
+        Ptr<Ipv4StaticRouting> ispRouting =
+            ipv4RoutingHelper.GetStaticRouting(ispRouter->GetObject<Ipv4>());
+        uint32_t ispIf = ispRouter->GetObject<Ipv4>()->GetInterfaceForDevice(pgwIspDevices.Get(1));
+        ispRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"),
+                                      Ipv4Mask("255.0.0.0"),
+                                      pgwP2pIp,
+                                      ispIf);
+    }
+
+    {
+        Ptr<Ipv4StaticRouting> pgwRouting =
+            ipv4RoutingHelper.GetStaticRouting(pgw->GetObject<Ipv4>());
+        uint32_t pgwIf = pgw->GetObject<Ipv4>()->GetInterfaceForDevice(pgwIspDevices.Get(0));
+        pgwRouting->AddNetworkRouteTo(Ipv4Address("8.8.8.0"),
+                                      Ipv4Mask("255.255.255.0"),
+                                      ispP2pIp,
+                                      pgwIf);
+    }
+
+    return cfg;
+}
+
 void ConfigureIPForwarding(NodeContainer meshNodes, NodeContainer internetNodes)
 {
     NS_LOG_FUNCTION("Configuring IP forwarding");
@@ -1400,7 +1529,8 @@ SwitchUeToLte(uint32_t staIndex,
 static void
 SwitchUeToWifi(uint32_t staIndex,
                const HotspotConfig& hotspotConfig,
-               const LteHybridConfig& lteConfig)
+               Ipv4Address serviceIp,
+               const std::string& fromPath)
 {
     if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
     {
@@ -1413,7 +1543,7 @@ SwitchUeToWifi(uint32_t staIndex,
     Ptr<Ipv4StaticRouting> rt = helper.GetStaticRouting(ipv4);
 
     // Remove LTE host route to the service and install explicit WiFi host route.
-    RemoveExistingHostRoute(rt, lteConfig.serviceIp);
+    RemoveExistingHostRoute(rt, serviceIp);
     if (staIndex < hotspotConfig.currentStaApIndex.size())
     {
         uint32_t apNodeIndex = hotspotConfig.currentStaApIndex[staIndex];
@@ -1423,7 +1553,7 @@ SwitchUeToWifi(uint32_t staIndex,
             Ipv4Address apHotspotIp = hotspotConfig.apInterfaces.GetAddress(apNodeIndex);
             Ptr<NetDevice> staDev = hotspotConfig.staDevices.Get(staIndex);
             uint32_t staIf = ipv4->GetInterfaceForDevice(staDev);
-            rt->AddHostRouteTo(lteConfig.serviceIp, apHotspotIp, staIf);
+            rt->AddHostRouteTo(serviceIp, apHotspotIp, staIf);
         }
     }
 
@@ -1435,18 +1565,53 @@ SwitchUeToWifi(uint32_t staIndex,
     {
         g_switchLog << Simulator::Now().GetSeconds() << ","
                     << staIndex << ","
-                    << "lte,wifi,"
+                    << fromPath << ",wifi,"
                     << st.rssiAvgDbm << ","
-                    << lteConfig.serviceIp << "\n";
+                    << serviceIp << "\n";
     }
 }
 
 static void
-CheckHybridSwitching(const HotspotConfig& hotspotConfig,
-                     const LteHybridConfig& lteConfig,
-                     Time interval,
-                     double rssiThresholdDbm,
-                     double rssiHysteresisDb)
+SwitchUeToNr(uint32_t staIndex,
+             const HotspotConfig& hotspotConfig,
+             const NrHybridConfig& nrConfig)
+{
+    if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
+    {
+        return;
+    }
+
+    Ptr<Node> ue = hotspotConfig.staNodes.Get(staIndex);
+    Ptr<Ipv4> ipv4 = ue->GetObject<Ipv4>();
+    Ipv4StaticRoutingHelper helper;
+    Ptr<Ipv4StaticRouting> rt = helper.GetStaticRouting(ipv4);
+
+    Ptr<NetDevice> nrDev = nrConfig.ueDevices.Get(staIndex);
+    uint32_t nrIf = ipv4->GetInterfaceForDevice(nrDev);
+
+    RemoveExistingHostRoute(rt, nrConfig.serviceIp);
+    rt->AddHostRouteTo(nrConfig.serviceIp, nrConfig.ueGateway, nrIf);
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    st.currentPath = USE_LTE;
+    st.lastSwitch = Simulator::Now();
+
+    if (g_switchLogOpen)
+    {
+        g_switchLog << Simulator::Now().GetSeconds() << ","
+                    << staIndex << ","
+                    << "wifi,nr,"
+                    << st.rssiAvgDbm << ","
+                    << nrConfig.serviceIp << "\n";
+    }
+}
+
+static void
+CheckHybridSwitchingLte(const HotspotConfig& hotspotConfig,
+                        const LteHybridConfig& lteConfig,
+                        Time interval,
+                        double rssiThresholdDbm,
+                        double rssiHysteresisDb)
 {
     if (!g_hybridContext.enabled)
     {
@@ -1477,13 +1642,58 @@ CheckHybridSwitching(const HotspotConfig& hotspotConfig,
         {
             if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
             {
-                SwitchUeToWifi(i, hotspotConfig, lteConfig);
+                SwitchUeToWifi(i, hotspotConfig, lteConfig.serviceIp, "lte");
             }
         }
     }
 
-    Simulator::Schedule(interval, &CheckHybridSwitching,
+    Simulator::Schedule(interval, &CheckHybridSwitchingLte,
                         hotspotConfig, lteConfig, interval, rssiThresholdDbm, rssiHysteresisDb);
+}
+
+static void
+CheckHybridSwitchingNr(const HotspotConfig& hotspotConfig,
+                       const NrHybridConfig& nrConfig,
+                       Time interval,
+                       double rssiThresholdDbm,
+                       double rssiHysteresisDb)
+{
+    if (!g_hybridContext.enabled)
+    {
+        return;
+    }
+
+    for (uint32_t i = 0; i < hotspotConfig.staNodes.GetN(); ++i)
+    {
+        HybridUeState& st = g_hybridContext.ueStates[i];
+        if (!st.rssiInitialized)
+        {
+            continue;
+        }
+
+        if (Simulator::Now() - st.lastSwitch < g_hybridContext.minSwitchInterval)
+        {
+            continue;
+        }
+
+        if (st.currentPath == USE_WIFI)
+        {
+            if (st.rssiAvgDbm < rssiThresholdDbm)
+            {
+                SwitchUeToNr(i, hotspotConfig, nrConfig);
+            }
+        }
+        else
+        {
+            if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
+            {
+                SwitchUeToWifi(i, hotspotConfig, nrConfig.serviceIp, "nr");
+            }
+        }
+    }
+
+    Simulator::Schedule(interval, &CheckHybridSwitchingNr,
+                        hotspotConfig, nrConfig, interval, rssiThresholdDbm, rssiHysteresisDb);
 }
 
 int main(int argc, char* argv[])
@@ -1516,6 +1726,7 @@ int main(int argc, char* argv[])
     std::string hotspotBand = "5g"; // Hotspot band selector (5g or 2g)
     // Root output directory for Wi-Fi hybrid runs (in repo root)
     std::string outputDir = "Wifi_hybrid_outputs";
+    std::string cellularMode = "lte"; // cellular fallback mode: lte (default) or nr
     double flowScale = 1.0;
     bool enableSwitching = true;
     double rssiThresholdDbm = -80.0;
@@ -1540,11 +1751,12 @@ int main(int argc, char* argv[])
     cmd.AddValue("voipBytes", "Total bytes for each VoIP OnOff flow", voipBytes);
     cmd.AddValue("hotspotBand", "Hotspot band for STA AP radios (5g or 2g)", hotspotBand);
     cmd.AddValue("outputDir", "Directory where run artifacts (metrics, flowmon, config) are stored", outputDir);
+    cmd.AddValue("cellularMode", "Cellular fallback mode (lte or nr)", cellularMode);
     cmd.AddValue("flowScale",
                  "Multiplier applied to upload/download byte budgets (1=1MB default)", flowScale);
     cmd.AddValue("rngSeed", "RNG seed for reproducible runs", rngSeed);
-    cmd.AddValue("enableSwitching", "Enable RSSI-based WiFi<->LTE switching for service traffic", enableSwitching);
-    cmd.AddValue("rssiThresholdDbm", "WiFi RSSI threshold (dBm) below which to switch to LTE", rssiThresholdDbm);
+    cmd.AddValue("enableSwitching", "Enable RSSI-based WiFi<->cellular switching for service traffic", enableSwitching);
+    cmd.AddValue("rssiThresholdDbm", "WiFi RSSI threshold (dBm) below which to switch to cellular", rssiThresholdDbm);
     cmd.AddValue("rssiHysteresisDb", "RSSI hysteresis (dB) above threshold to switch back to WiFi", rssiHysteresisDb);
     cmd.AddValue("switchIntervalSec", "Switch controller interval (seconds)", switchIntervalSec);
     cmd.Parse(argc, argv);
@@ -1581,6 +1793,20 @@ int main(int argc, char* argv[])
         hotspotBandNormalized = "5g";
     }
     hotspotBand = hotspotBandNormalized;
+
+    std::string cellularModeNormalized = cellularMode;
+    std::transform(cellularModeNormalized.begin(),
+                   cellularModeNormalized.end(),
+                   cellularModeNormalized.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (cellularModeNormalized != "lte" && cellularModeNormalized != "nr")
+    {
+        NS_LOG_WARN("Invalid cellularMode value '" << cellularMode
+                    << "'. Supported values are 'lte' or 'nr'. Defaulting to lte.");
+        cellularModeNormalized = "lte";
+    }
+    cellularMode = cellularModeNormalized;
+    bool useNrCellular = (cellularMode == "nr");
     
     fs::create_directories(fs::path(outputDir));
     
@@ -1671,6 +1897,7 @@ int main(int argc, char* argv[])
         }
 
         std::cout << "Hybrid RSSI switching is " << (enableSwitching ? "ENABLED" : "DISABLED")
+                  << " [cellular mode=" << cellularMode << "]"
                   << " (threshold=" << rssiThresholdDbm << " dBm"
                   << ", hysteresis=" << rssiHysteresisDb << " dB"
                   << ", interval=" << switchIntervalSec << " s)"
@@ -1681,17 +1908,28 @@ int main(int argc, char* argv[])
                         MakeCallback(&WifiSnifferRxCallback));
     }
 
-    // LTE overlay: give each STA node a cellular interface used by route steering
+    // Cellular overlay: LTE by default, optional NR if requested.
     LteHybridConfig lteConfig;
+    NrHybridConfig nrConfig;
     if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
         // Field size is 400 x 400 m as per project objective
         // Service IP is the WiFi-side internet server address (8.8.8.x)
         Ipv4Address serviceIp = internetConfig.internetInterfaces.GetAddress(1);
-        lteConfig = SetupLteHybridOverlay(hotspotConfig.staNodes,
-                                          internetConfig.internetNodes.Get(0),
-                                          serviceIp,
-                                          400.0);
+        if (useNrCellular)
+        {
+            nrConfig = SetupNrHybridOverlay(hotspotConfig.staNodes,
+                                            internetConfig.internetNodes.Get(0),
+                                            serviceIp,
+                                            400.0);
+        }
+        else
+        {
+            lteConfig = SetupLteHybridOverlay(hotspotConfig.staNodes,
+                                              internetConfig.internetNodes.Get(0),
+                                              serviceIp,
+                                              400.0);
+        }
     }
 
     ConfigureIPForwarding(meshNetConfig.meshNodes, internetConfig.internetNodes);
@@ -1713,13 +1951,26 @@ int main(int argc, char* argv[])
     // Start periodic RSSI-based switching after initial association/traffic startup.
     if (enableSwitching && enableHotspot && hotspotConfig.staNodes.GetN() > 0)
     {
-        Simulator::Schedule(Seconds(5.0),
-                            &CheckHybridSwitching,
-                            hotspotConfig,
-                            lteConfig,
-                            Seconds(switchIntervalSec),
-                            rssiThresholdDbm,
-                            rssiHysteresisDb);
+        if (useNrCellular)
+        {
+            Simulator::Schedule(Seconds(5.0),
+                                &CheckHybridSwitchingNr,
+                                hotspotConfig,
+                                nrConfig,
+                                Seconds(switchIntervalSec),
+                                rssiThresholdDbm,
+                                rssiHysteresisDb);
+        }
+        else
+        {
+            Simulator::Schedule(Seconds(5.0),
+                                &CheckHybridSwitchingLte,
+                                hotspotConfig,
+                                lteConfig,
+                                Seconds(switchIntervalSec),
+                                rssiThresholdDbm,
+                                rssiHysteresisDb);
+        }
     }
 
     
