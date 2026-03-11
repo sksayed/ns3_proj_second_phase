@@ -231,7 +231,8 @@ StaRoamingContext g_staRoamingContext;
 enum HybridPath
 {
     USE_WIFI = 0,
-    USE_LTE = 1
+    USE_LTE = 1,
+    USE_NR = 2
 };
 
 struct HybridUeState
@@ -241,6 +242,10 @@ struct HybridUeState
     bool rssiInitialized{false};
     uint64_t txPackets{0};
     uint64_t rxPackets{0};
+    double pdrWindow{1.0};
+    uint64_t lastTxSnapshot{0};
+    uint64_t lastRxSnapshot{0};
+    Time lastPdrUpdate{Seconds(0.0)};
     Time lastSwitch{Seconds(0.0)};
     bool hasLastServiceRx{false};
     Time lastServiceRx{Seconds(0.0)};
@@ -338,6 +343,44 @@ HandleServiceSinkRx(uint32_t staIndex, Ptr<const Packet> packet, const Address& 
 
         st.pendingObservedSwitch = false;
     }
+}
+
+static void
+HandleServiceTx(uint32_t staIndex, Ptr<const Packet> packet)
+{
+    (void)packet;
+    if (!g_hybridContext.enabled || staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    st.txPackets++;
+}
+
+static void
+UpdatePerStaPdr(Time interval)
+{
+    if (!g_hybridContext.enabled)
+    {
+        return;
+    }
+
+    Time now = Simulator::Now();
+    for (uint32_t i = 0; i < g_hybridContext.ueStates.size(); ++i)
+    {
+        HybridUeState& st = g_hybridContext.ueStates[i];
+        uint64_t dTx = st.txPackets - st.lastTxSnapshot;
+        uint64_t dRx = st.rxPackets - st.lastRxSnapshot;
+
+        double pdr = (dTx > 0) ? static_cast<double>(dRx) / static_cast<double>(dTx) : 1.0;
+        st.pdrWindow = pdr;
+        st.lastTxSnapshot = st.txPackets;
+        st.lastRxSnapshot = st.rxPackets;
+        st.lastPdrUpdate = now;
+    }
+
+    Simulator::Schedule(interval, &UpdatePerStaPdr, interval);
 }
 
 void
@@ -721,11 +764,14 @@ HotspotConfig SetupHotspotInfrastructure(NodeContainer meshNodes,
                                           uint32_t numStaNodes,
                                           double nodeSpacing,
                                           double staHeight,
+                                          double staSpeedMin,
+                                          double staSpeedMax,
                                           const MeshAPDeviceConfig& deviceCfg,
                                           const std::string& hotspotBand)
 {
     NS_LOG_FUNCTION("Setting up hotspot infrastructure with " << numStaNodes << " STA clients");
     NS_LOG_INFO("Using hotspot TX power: " << deviceCfg.hotspotTxPower << " dBm from device config");
+    NS_LOG_INFO("STA mobility speed range: [" << staSpeedMin << ", " << staSpeedMax << "] m/s");
 
     HotspotConfig config;
     config.commonSsid = Ssid("MeshHotspot");
@@ -864,13 +910,16 @@ HotspotConfig SetupHotspotInfrastructure(NodeContainer meshNodes,
 
         MobilityHelper staMobilityHelper;
         staMobilityHelper.SetPositionAllocator(posAlloc);
+        std::ostringstream meanVelocity;
+        meanVelocity << "ns3::UniformRandomVariable[Min=" << staSpeedMin
+                     << "|Max=" << staSpeedMax << "]";
         staMobilityHelper.SetMobilityModel("ns3::GaussMarkovMobilityModel",
             "Bounds", BoxValue(Box(0.0, 400.0,
                                     0.0, 400.0,
                                     0.0, 30.0)),
             "TimeStep", TimeValue(Seconds(1.0)),
             "Alpha", DoubleValue(0.85),
-            "MeanVelocity", StringValue("ns3::UniformRandomVariable[Min=0.3|Max=0.8]"),
+            "MeanVelocity", StringValue(meanVelocity.str()),
             "MeanDirection", StringValue("ns3::UniformRandomVariable[Min=0|Max=6.283185307]"),
             "MeanPitch", StringValue("ns3::UniformRandomVariable[Min=-0.05|Max=0.05]"),
             "NormalVelocity", StringValue("ns3::NormalRandomVariable[Mean=0.0|Variance=0.0|Bound=0.0]"),
@@ -1262,6 +1311,11 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer uploadApp = upload.Install(hotspotConfig.staNodes.Get(i));
         uploadApp.Start(Seconds(baseStart));
         uploadApp.Stop(Seconds(simTime));
+        if (uploadApp.GetN() > 0)
+        {
+            Ptr<Application> app = uploadApp.Get(0);
+            app->TraceConnectWithoutContext("Tx", MakeBoundCallback(&HandleServiceTx, i));
+        }
 
         PacketSinkHelper uploadSink("ns3::TcpSocketFactory",
                                     InetSocketAddress(Ipv4Address::GetAny(), uploadPort));
@@ -1285,6 +1339,11 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer voipApp = voipClient.Install(hotspotConfig.staNodes.Get(i));
         voipApp.Start(Seconds(baseStart + 0.1));
         voipApp.Stop(Seconds(simTime));
+        if (voipApp.GetN() > 0)
+        {
+            Ptr<Application> app = voipApp.Get(0);
+            app->TraceConnectWithoutContext("Tx", MakeBoundCallback(&HandleServiceTx, i));
+        }
 
         // Second TCP service flow (STA -> server). Using service IP keeps this flow
         // steerable by the same WiFi/LTE host-route switch as upload/VoIP.
@@ -1300,6 +1359,11 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer serviceTcpApp = serviceTcpClient.Install(hotspotConfig.staNodes.Get(i));
         serviceTcpApp.Start(Seconds(baseStart + 0.3));
         serviceTcpApp.Stop(Seconds(simTime));
+        if (serviceTcpApp.GetN() > 0)
+        {
+            Ptr<Application> app = serviceTcpApp.Get(0);
+            app->TraceConnectWithoutContext("Tx", MakeBoundCallback(&HandleServiceTx, i));
+        }
 
         PacketSinkHelper serviceTcpSink("ns3::TcpSocketFactory",
                                         InetSocketAddress(Ipv4Address::GetAny(), serviceTcpPort));
@@ -1834,7 +1898,7 @@ SwitchUeToNr(uint32_t staIndex,
     rt->AddHostRouteTo(nrConfig.serviceIp, nrConfig.ueGateway, nrIf);
 
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
-    st.currentPath = USE_LTE;
+    st.currentPath = USE_NR;
     st.lastSwitch = Simulator::Now();
 
     st.pendingObservedSwitch = true;
@@ -1875,7 +1939,12 @@ CheckHybridSwitchingLte(const HotspotConfig& hotspotConfig,
 
         if (st.currentPath == USE_WIFI)
         {
-            if (st.rssiAvgDbm < rssiThresholdDbm)
+            // Per-STA combined trigger: RSSI below threshold and PDR window degraded.
+            const double pdrThreshold = 0.9; // 90% window PDR
+            bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
+            bool pdrBad = (st.pdrWindow < pdrThreshold);
+
+            if (rssiBad && pdrBad)
             {
                 const Time triggerTime = Simulator::Now();
                 SwitchUeToLte(i, hotspotConfig, lteConfig, triggerTime);
@@ -1922,7 +1991,11 @@ CheckHybridSwitchingNr(const HotspotConfig& hotspotConfig,
 
         if (st.currentPath == USE_WIFI)
         {
-            if (st.rssiAvgDbm < rssiThresholdDbm)
+            const double pdrThreshold = 0.9; // 90% window PDR
+            bool rssiBad = (st.rssiAvgDbm < rssiThresholdDbm);
+            bool pdrBad = (st.pdrWindow < pdrThreshold);
+
+            if (rssiBad && pdrBad)
             {
                 const Time triggerTime = Simulator::Now();
                 SwitchUeToNr(i, hotspotConfig, nrConfig, triggerTime);
@@ -1964,6 +2037,8 @@ int main(int argc, char* argv[])
     uint32_t numStaNodes = 1;     // Single STA client (was 10)
     double meshApHeight = 1.5;     // Mesh AP height (meters) - for height optimization tests
     double staHeight = 5.0;        // STA node height (meters) - for vertical spacing tests
+    double staSpeedMin = 1.0;      // STA mean speed lower bound (m/s)
+    double staSpeedMax = 3.0;      // STA mean speed upper bound (m/s)
     uint32_t rngSeed = 6;          // RNG seed for reproducible runs
     uint32_t meshConfig = 1;       // Mesh AP device configuration (0=Default, 1=TP-Link EAP225, 2=Netgear Orbi 960, 3=Asus ZenWiFi XT8)
     uint32_t uploadBytes = 1 * 1024 * 1024;
@@ -1991,6 +2066,8 @@ int main(int argc, char* argv[])
     cmd.AddValue("numStaNodes", "Number of STA clients", numStaNodes);
     cmd.AddValue("meshApHeight", "Mesh AP height in meters (1.5, 10, 15)", meshApHeight);
     cmd.AddValue("staHeight", "STA node height in meters (0-30)", staHeight);
+    cmd.AddValue("staSpeedMin", "STA mean speed minimum in m/s", staSpeedMin);
+    cmd.AddValue("staSpeedMax", "STA mean speed maximum in m/s", staSpeedMax);
     cmd.AddValue("meshConfig", "Mesh AP device (0=Default 802.11g, 1=TP-Link EAP225, 2=Netgear Orbi 960, 3=Asus ZenWiFi XT8)", meshConfig);
     cmd.AddValue("uploadBytes", "Total bytes for each STA TCP upload flow", uploadBytes);
     cmd.AddValue("downloadBytes", "Total bytes for each STA TCP download flow", downloadBytes);
@@ -2039,6 +2116,13 @@ int main(int argc, char* argv[])
         hotspotBandNormalized = "5g";
     }
     hotspotBand = hotspotBandNormalized;
+    if (staSpeedMin < 0.0 || staSpeedMax < 0.0 || staSpeedMin > staSpeedMax)
+    {
+        NS_LOG_WARN("Invalid STA speed range [" << staSpeedMin << ", " << staSpeedMax
+                     << "], resetting to defaults [1.0, 3.0] m/s.");
+        staSpeedMin = 1.0;
+        staSpeedMax = 3.0;
+    }
 
     std::string cellularModeNormalized = cellularMode;
     std::transform(cellularModeNormalized.begin(),
@@ -2100,6 +2184,8 @@ int main(int argc, char* argv[])
                                                    numStaNodes,
                                                    nodeSpacing,
                                                    staHeight,
+                                                   staSpeedMin,
+                                                   staSpeedMax,
                                                    deviceCfg,
                                                    hotspotBand);  // Pass device config for hotspot TX power
     }
@@ -2182,6 +2268,12 @@ int main(int argc, char* argv[])
                                               serviceIp,
                                               400.0);
         }
+    }
+
+    // Start periodic per-STA PDR window updates for hybrid control.
+    if (enableHotspot && hotspotConfig.staNodes.GetN() > 0)
+    {
+        Simulator::Schedule(Seconds(1.0), &UpdatePerStaPdr, Seconds(1.0));
     }
 
     // Connect cellular PHY quality traces (RSRP/SINR) to the same CSV log as WiFi RSSI.
