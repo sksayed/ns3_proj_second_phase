@@ -242,6 +242,17 @@ struct HybridUeState
     uint64_t txPackets{0};
     uint64_t rxPackets{0};
     Time lastSwitch{Seconds(0.0)};
+    bool hasLastServiceRx{false};
+    Time lastServiceRx{Seconds(0.0)};
+    bool pendingObservedSwitch{false};
+    Time pendingTriggerTime{Seconds(0.0)};
+    Time pendingApplyTime{Seconds(0.0)};
+    bool pendingHasLastOk{false};
+    Time pendingLastOkBefore{Seconds(0.0)};
+    std::string pendingFrom{"wifi"};
+    std::string pendingTo{"wifi"};
+    double pendingRssiDbm{-1000.0};
+    Ipv4Address pendingServiceIp{"0.0.0.0"};
 };
 
 struct HybridControllerContext
@@ -263,6 +274,71 @@ std::ofstream g_rssiLog;
 bool g_rssiLogOpen{false};
 std::ofstream g_switchLog;
 bool g_switchLogOpen{false};
+
+static bool
+ExtractNodeIdFromContext(const std::string& context, uint32_t& nodeIdOut)
+{
+    // Context string example: "/NodeList/<id>/DeviceList/..."
+    std::size_t nPos = context.find("NodeList/");
+    if (nPos == std::string::npos)
+    {
+        return false;
+    }
+    nPos += std::string("NodeList/").size();
+    std::size_t endPos = context.find('/', nPos);
+    if (endPos == std::string::npos)
+    {
+        return false;
+    }
+    std::string idStr = context.substr(nPos, endPos - nPos);
+    try
+    {
+        nodeIdOut = static_cast<uint32_t>(std::stoul(idStr));
+        return true;
+    }
+    catch (const std::exception&)
+    {
+        return false;
+    }
+}
+
+void
+HandleServiceSinkRx(uint32_t staIndex, Ptr<const Packet> packet, const Address& from)
+{
+    (void)packet;
+    (void)from;
+
+    if (!g_hybridContext.enabled || staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    st.rxPackets++;
+    st.lastServiceRx = Simulator::Now();
+    st.hasLastServiceRx = true;
+
+    if (st.pendingObservedSwitch && Simulator::Now() >= st.pendingApplyTime)
+    {
+        const Time firstRx = Simulator::Now();
+        const double interruptionMs =
+            st.pendingHasLastOk ? (firstRx - st.pendingLastOkBefore).GetMilliSeconds() : -1.0;
+
+        if (g_switchLogOpen)
+        {
+            g_switchLog << staIndex << ","
+                        << st.pendingFrom << ","
+                        << st.pendingTo << ","
+                        << (st.pendingHasLastOk ? st.pendingLastOkBefore.GetSeconds() : -1.0) << ","
+                        << firstRx.GetSeconds() << ","
+                        << interruptionMs << ","
+                        << st.pendingRssiDbm << ","
+                        << st.pendingServiceIp << "\n";
+        }
+
+        st.pendingObservedSwitch = false;
+    }
+}
 
 void
 RemoveExistingHostRoute(Ptr<Ipv4StaticRouting> routing, const Ipv4Address& destination)
@@ -1192,6 +1268,12 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer uploadSinkApp = uploadSink.Install(internetConfig.internetNodes.Get(1));
         uploadSinkApp.Start(Seconds(9.5));
         uploadSinkApp.Stop(Seconds(simTime));
+        Ptr<PacketSink> uploadPacketSink = DynamicCast<PacketSink>(uploadSinkApp.Get(0));
+        if (uploadPacketSink)
+        {
+            uploadPacketSink->TraceConnectWithoutContext("Rx",
+                                                         MakeBoundCallback(&HandleServiceSinkRx, i));
+        }
 
         // UDP VoIP-like upstream traffic
         OnOffHelper voipClient("ns3::UdpSocketFactory", voipAddress);
@@ -1224,6 +1306,12 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
         ApplicationContainer serviceTcpSinkApp = serviceTcpSink.Install(internetConfig.internetNodes.Get(1));
         serviceTcpSinkApp.Start(Seconds(9.5));
         serviceTcpSinkApp.Stop(Seconds(simTime));
+        Ptr<PacketSink> serviceTcpPacketSink = DynamicCast<PacketSink>(serviceTcpSinkApp.Get(0));
+        if (serviceTcpPacketSink)
+        {
+            serviceTcpPacketSink->TraceConnectWithoutContext("Rx",
+                                                             MakeBoundCallback(&HandleServiceSinkRx, i));
+        }
     }
 }
 
@@ -1333,25 +1421,10 @@ WifiSnifferRxCallback(std::string context,
         return;
     }
 
-    // Extract nodeId from context string: "/NodeList/<id>/DeviceList/..."
     uint32_t nodeId = 0;
-    std::size_t nPos = context.find("NodeList/");
-    if (nPos != std::string::npos)
+    if (!ExtractNodeIdFromContext(context, nodeId))
     {
-        nPos += std::string("NodeList/").size();
-        std::size_t endPos = context.find('/', nPos);
-        if (endPos != std::string::npos)
-        {
-            std::string idStr = context.substr(nPos, endPos - nPos);
-            try
-            {
-                nodeId = static_cast<uint32_t>(std::stoul(idStr));
-            }
-            catch (const std::exception&)
-            {
-                return;
-            }
-        }
+        return;
     }
 
     auto it = g_hybridContext.nodeIdToStaIndex->find(nodeId);
@@ -1431,14 +1504,177 @@ WifiSnifferRxCallback(std::string context,
 
     if (g_rssiLogOpen)
     {
-        // time(s), staIndex, nodeId, freqMHz, instRssi, avgRssi
+        // Keep the original first 6 columns intact. Append WiFi-specific fields.
         g_rssiLog << Simulator::Now().GetSeconds() << ","
                   << staIndex << ","
                   << nodeId << ","
                   << channelFreqMhz << ","
                   << rssiDbm << ","
-                  << st.rssiAvgDbm << "\n";
+                  << st.rssiAvgDbm << ","
+                  << "wifi" << ","
+                  << "nan" << ","
+                  << "nan" << ","
+                  << "nan" << ","
+                  << "nan" << ","
+                  << "nan" << ","
+                  << (st.currentPath == USE_WIFI ? "wifi" : "cellular")
+                  << "\n";
     }
+}
+
+// ---------------------------------------------------------------------------//
+// Cellular link quality monitoring (LTE/NR) for hybrid controller
+// ---------------------------------------------------------------------------//
+
+static void
+LteUeRsrpSinrCallback(std::string context,
+                      uint16_t cellId,
+                      uint16_t rnti,
+                      double rsrpW,
+                      double sinrLinear,
+                      uint8_t componentCarrierId)
+{
+    if (!g_hybridContext.enabled || g_hybridContext.nodeIdToStaIndex == nullptr || !g_rssiLogOpen)
+    {
+        return;
+    }
+
+    uint32_t nodeId = 0;
+    if (!ExtractNodeIdFromContext(context, nodeId))
+    {
+        return;
+    }
+
+    auto it = g_hybridContext.nodeIdToStaIndex->find(nodeId);
+    if (it == g_hybridContext.nodeIdToStaIndex->end())
+    {
+        return;
+    }
+    uint32_t staIndex = it->second;
+    if (staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    // LTE trace reports RSRP in linear Watts and SINR in linear scale.
+    const double rsrpDbm = 10.0 * std::log10(rsrpW) + 30.0;
+    const double sinrDb = 10.0 * std::log10(sinrLinear);
+    const HybridUeState& st = g_hybridContext.ueStates[staIndex];
+
+    // Append to the same CSV as WiFi RSSI, keeping first 6 columns intact.
+    g_rssiLog << Simulator::Now().GetSeconds() << ","
+              << staIndex << ","
+              << nodeId << ","
+              << 0 << ","
+              << "nan" << ","
+              << "nan" << ","
+              << "lte" << ","
+              << cellId << ","
+              << rnti << ","
+              << static_cast<uint32_t>(componentCarrierId) << ","
+              << rsrpDbm << ","
+              << sinrDb << ","
+              << (st.currentPath == USE_WIFI ? "wifi" : "cellular")
+              << "\n";
+}
+
+static void
+NrUeRsrpCallback(std::string context,
+                 uint16_t cellId,
+                 uint16_t ueId,
+                 uint16_t rnti,
+                 double rsrpDbm,
+                 uint8_t bwpId)
+{
+    if (!g_hybridContext.enabled || g_hybridContext.nodeIdToStaIndex == nullptr || !g_rssiLogOpen)
+    {
+        return;
+    }
+
+    uint32_t nodeId = 0;
+    if (!ExtractNodeIdFromContext(context, nodeId))
+    {
+        return;
+    }
+
+    auto it = g_hybridContext.nodeIdToStaIndex->find(nodeId);
+    if (it == g_hybridContext.nodeIdToStaIndex->end())
+    {
+        return;
+    }
+    uint32_t staIndex = it->second;
+    if (staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    const HybridUeState& st = g_hybridContext.ueStates[staIndex];
+
+    // NR trace reports RSRP already in dBm (see contrib/nr/model/nr-ue-phy.cc).
+    g_rssiLog << Simulator::Now().GetSeconds() << ","
+              << staIndex << ","
+              << nodeId << ","
+              << 0 << ","
+              << "nan" << ","
+              << "nan" << ","
+              << "nr" << ","
+              << cellId << ","
+              << rnti << ","
+              << static_cast<uint32_t>(bwpId) << ","
+              << rsrpDbm << ","
+              << "nan" << ","
+              << (st.currentPath == USE_WIFI ? "wifi" : "cellular")
+              << "\n";
+
+    (void)ueId;
+}
+
+static void
+NrUeDlDataSinrCallback(std::string context,
+                       uint16_t cellId,
+                       uint16_t rnti,
+                       double sinrLinear,
+                       uint16_t bwpId)
+{
+    if (!g_hybridContext.enabled || g_hybridContext.nodeIdToStaIndex == nullptr || !g_rssiLogOpen)
+    {
+        return;
+    }
+
+    uint32_t nodeId = 0;
+    if (!ExtractNodeIdFromContext(context, nodeId))
+    {
+        return;
+    }
+
+    auto it = g_hybridContext.nodeIdToStaIndex->find(nodeId);
+    if (it == g_hybridContext.nodeIdToStaIndex->end())
+    {
+        return;
+    }
+    uint32_t staIndex = it->second;
+    if (staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    const HybridUeState& st = g_hybridContext.ueStates[staIndex];
+    const double sinrDb = 10.0 * std::log10(sinrLinear);
+
+    g_rssiLog << Simulator::Now().GetSeconds() << ","
+              << staIndex << ","
+              << nodeId << ","
+              << 0 << ","
+              << "nan" << ","
+              << "nan" << ","
+              << "nr" << ","
+              << cellId << ","
+              << rnti << ","
+              << bwpId << ","
+              << "nan" << ","
+              << sinrDb << ","
+              << (st.currentPath == USE_WIFI ? "wifi" : "cellular")
+              << "\n";
 }
 
 void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaNodes, 
@@ -1494,7 +1730,8 @@ void SaveConfigurationJSON(uint32_t nNodes, uint32_t gridWidth, uint32_t numStaN
 static void
 SwitchUeToLte(uint32_t staIndex,
               const HotspotConfig& hotspotConfig,
-              const LteHybridConfig& lteConfig)
+              const LteHybridConfig& lteConfig,
+              Time triggerTime)
 {
     if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
     {
@@ -1516,21 +1753,23 @@ SwitchUeToLte(uint32_t staIndex,
     st.currentPath = USE_LTE;
     st.lastSwitch = Simulator::Now();
 
-    if (g_switchLogOpen)
-    {
-        g_switchLog << Simulator::Now().GetSeconds() << ","
-                    << staIndex << ","
-                    << "wifi,lte,"
-                    << st.rssiAvgDbm << ","
-                    << lteConfig.serviceIp << "\n";
-    }
+    st.pendingObservedSwitch = true;
+    st.pendingTriggerTime = triggerTime;
+    st.pendingApplyTime = Simulator::Now();
+    st.pendingHasLastOk = st.hasLastServiceRx;
+    st.pendingLastOkBefore = st.lastServiceRx;
+    st.pendingFrom = "wifi";
+    st.pendingTo = "lte";
+    st.pendingRssiDbm = st.rssiAvgDbm;
+    st.pendingServiceIp = lteConfig.serviceIp;
 }
 
 static void
 SwitchUeToWifi(uint32_t staIndex,
                const HotspotConfig& hotspotConfig,
                Ipv4Address serviceIp,
-               const std::string& fromPath)
+               const std::string& fromPath,
+               Time triggerTime)
 {
     if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
     {
@@ -1561,20 +1800,22 @@ SwitchUeToWifi(uint32_t staIndex,
     st.currentPath = USE_WIFI;
     st.lastSwitch = Simulator::Now();
 
-    if (g_switchLogOpen)
-    {
-        g_switchLog << Simulator::Now().GetSeconds() << ","
-                    << staIndex << ","
-                    << fromPath << ",wifi,"
-                    << st.rssiAvgDbm << ","
-                    << serviceIp << "\n";
-    }
+    st.pendingObservedSwitch = true;
+    st.pendingTriggerTime = triggerTime;
+    st.pendingApplyTime = Simulator::Now();
+    st.pendingHasLastOk = st.hasLastServiceRx;
+    st.pendingLastOkBefore = st.lastServiceRx;
+    st.pendingFrom = fromPath;
+    st.pendingTo = "wifi";
+    st.pendingRssiDbm = st.rssiAvgDbm;
+    st.pendingServiceIp = serviceIp;
 }
 
 static void
 SwitchUeToNr(uint32_t staIndex,
              const HotspotConfig& hotspotConfig,
-             const NrHybridConfig& nrConfig)
+             const NrHybridConfig& nrConfig,
+             Time triggerTime)
 {
     if (!g_hybridContext.enabled || staIndex >= hotspotConfig.staNodes.GetN())
     {
@@ -1596,14 +1837,15 @@ SwitchUeToNr(uint32_t staIndex,
     st.currentPath = USE_LTE;
     st.lastSwitch = Simulator::Now();
 
-    if (g_switchLogOpen)
-    {
-        g_switchLog << Simulator::Now().GetSeconds() << ","
-                    << staIndex << ","
-                    << "wifi,nr,"
-                    << st.rssiAvgDbm << ","
-                    << nrConfig.serviceIp << "\n";
-    }
+    st.pendingObservedSwitch = true;
+    st.pendingTriggerTime = triggerTime;
+    st.pendingApplyTime = Simulator::Now();
+    st.pendingHasLastOk = st.hasLastServiceRx;
+    st.pendingLastOkBefore = st.lastServiceRx;
+    st.pendingFrom = "wifi";
+    st.pendingTo = "nr";
+    st.pendingRssiDbm = st.rssiAvgDbm;
+    st.pendingServiceIp = nrConfig.serviceIp;
 }
 
 static void
@@ -1635,14 +1877,16 @@ CheckHybridSwitchingLte(const HotspotConfig& hotspotConfig,
         {
             if (st.rssiAvgDbm < rssiThresholdDbm)
             {
-                SwitchUeToLte(i, hotspotConfig, lteConfig);
+                const Time triggerTime = Simulator::Now();
+                SwitchUeToLte(i, hotspotConfig, lteConfig, triggerTime);
             }
         }
         else
         {
             if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
             {
-                SwitchUeToWifi(i, hotspotConfig, lteConfig.serviceIp, "lte");
+                const Time triggerTime = Simulator::Now();
+                SwitchUeToWifi(i, hotspotConfig, lteConfig.serviceIp, "lte", triggerTime);
             }
         }
     }
@@ -1680,14 +1924,16 @@ CheckHybridSwitchingNr(const HotspotConfig& hotspotConfig,
         {
             if (st.rssiAvgDbm < rssiThresholdDbm)
             {
-                SwitchUeToNr(i, hotspotConfig, nrConfig);
+                const Time triggerTime = Simulator::Now();
+                SwitchUeToNr(i, hotspotConfig, nrConfig, triggerTime);
             }
         }
         else
         {
             if (st.rssiAvgDbm > (rssiThresholdDbm + rssiHysteresisDb))
             {
-                SwitchUeToWifi(i, hotspotConfig, nrConfig.serviceIp, "nr");
+                const Time triggerTime = Simulator::Now();
+                SwitchUeToWifi(i, hotspotConfig, nrConfig.serviceIp, "nr", triggerTime);
             }
         }
     }
@@ -1874,7 +2120,11 @@ int main(int argc, char* argv[])
         if (g_rssiLog.is_open())
         {
             g_rssiLogOpen = true;
-            g_rssiLog << "time_s,sta_index,node_id,freq_mhz,inst_rssi_dbm,avg_rssi_dbm\n";
+            // Keep the original first 6 columns for backward compatibility, then append
+            // cellular fields used for LTE/NR RSRP/SINR logging.
+            g_rssiLog
+                << "time_s,sta_index,node_id,freq_mhz,inst_rssi_dbm,avg_rssi_dbm,"
+                << "rat,cell_id,rnti,cc_or_bwp,rsrp_dbm,sinr_db,path\n";
             std::cout << "Hybrid RSSI log will be written to " << rssiLogPath << std::endl;
         }
         else
@@ -1888,7 +2138,9 @@ int main(int argc, char* argv[])
         if (g_switchLog.is_open())
         {
             g_switchLogOpen = true;
-            g_switchLog << "time_s,sta_index,from,to,rssi_avg_dbm,service_ip\n";
+            g_switchLog
+                << "sta_index,from,to,last_ok_before_s,first_rx_after_switch_s,service_interruption_ms,"
+                << "rssi_avg_dbm,service_ip\n";
             std::cout << "Hybrid switch log will be written to " << switchLogPath << std::endl;
         }
         else
@@ -1929,6 +2181,24 @@ int main(int argc, char* argv[])
                                               internetConfig.internetNodes.Get(0),
                                               serviceIp,
                                               400.0);
+        }
+    }
+
+    // Connect cellular PHY quality traces (RSRP/SINR) to the same CSV log as WiFi RSSI.
+    if (g_rssiLogOpen && enableHotspot && hotspotConfig.staNodes.GetN() > 0)
+    {
+        if (useNrCellular)
+        {
+            Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/ReportRsrp",
+                            MakeCallback(&NrUeRsrpCallback));
+            Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
+                            MakeCallback(&NrUeDlDataSinrCallback));
+        }
+        else
+        {
+            Config::Connect(
+                "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/LteUePhy/ReportCurrentCellRsrpSinr",
+                MakeCallback(&LteUeRsrpSinrCallback));
         }
     }
 
@@ -2024,6 +2294,20 @@ int main(int argc, char* argv[])
     }
 
     Simulator::Destroy();
+
+    // Ensure KPI logs are flushed before running the parser.
+    if (g_rssiLogOpen)
+    {
+        g_rssiLog.flush();
+        g_rssiLog.close();
+        g_rssiLogOpen = false;
+    }
+    if (g_switchLogOpen)
+    {
+        g_switchLog.flush();
+        g_switchLog.close();
+        g_switchLogOpen = false;
+    }
 
     // Run local Wi-Fi FlowMonitor parser with current folder structure
     std::ostringstream parseCmd;

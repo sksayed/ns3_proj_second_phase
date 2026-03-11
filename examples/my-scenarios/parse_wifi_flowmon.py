@@ -13,11 +13,12 @@ import argparse
 import csv
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 import xml.etree.ElementTree as ET
 
 
 DEFAULT_FLOWMON_PATH = Path("Wifi_hybrid_outputs/wifi-hybrid-flowmon_data.xml")
+DEFAULT_SWITCH_LOG = Path("Wifi_hybrid_outputs/wifi-hybrid-switch_log.csv")
 TRAFFIC_PORT_LABELS = {
     80: "HTTP",
     443: "HTTPS",
@@ -278,6 +279,71 @@ def _compute_summary(rows: Iterable[dict]) -> Optional[dict]:
     return {key: value / counted for key, value in totals.items()}
 
 
+def _safe_float(value: object, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _parse_switch_events(switch_log_path: Path) -> List[dict]:
+    """Parse switch log (supports legacy and current formats)."""
+    if not switch_log_path.exists():
+        return []
+
+    events: List[dict] = []
+    with switch_log_path.open("r", newline="") as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            event = {
+                "sta_index": int(_safe_float(row.get("sta_index"), -1)),
+                "from": (row.get("from") or "").strip(),
+                "to": (row.get("to") or "").strip(),
+                "last_ok_before_s": _safe_float(row.get("last_ok_before_s"), -1.0),
+                "first_rx_after_switch_s": _safe_float(row.get("first_rx_after_switch_s"), -1.0),
+                "service_interruption_ms": _safe_float(row.get("service_interruption_ms"), -1.0),
+                "rssi_avg_dbm": _safe_float(row.get("rssi_avg_dbm")),
+                "service_ip": (row.get("service_ip") or "").strip(),
+            }
+            events.append(event)
+    return events
+
+
+def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], delay_target_ms: float) -> dict:
+    rows = [row for row in rows if row.get("tx_packets", 0) > 0]
+    switch_events = list(switch_events)
+
+    active_clients = len(rows)
+    delay_compliant = sum(1 for row in rows if row["avg_delay_ms"] <= delay_target_ms)
+    delay_compliance_pct = (delay_compliant / active_clients * 100.0) if active_clients > 0 else 0.0
+
+    aggregate_rx_mbps = sum(row["throughput_mbps"] for row in rows)
+    multi_client_reception_rate_mbps = aggregate_rx_mbps if active_clients >= 3 else 0.0
+
+    cellular_switches = sum(1 for event in switch_events if event["to"] in {"lte", "nr"})
+    wifi_returns = sum(1 for event in switch_events if event["to"] == "wifi")
+    interruption_events = [event for event in switch_events if event["service_interruption_ms"] >= 0.0]
+    avg_service_interruption_ms = (
+        sum(event["service_interruption_ms"] for event in interruption_events) / len(interruption_events)
+        if interruption_events
+        else 0.0
+    )
+
+    return {
+        "active_clients": active_clients,
+        "delay_target_ms": delay_target_ms,
+        "delay_compliant_clients": delay_compliant,
+        "delay_compliance_pct": delay_compliance_pct,
+        "aggregate_rx_mbps": aggregate_rx_mbps,
+        "multi_client_reception_rate_mbps": multi_client_reception_rate_mbps,
+        "switch_event_count": len(switch_events),
+        "switches_to_cellular": cellular_switches,
+        "switches_to_wifi": wifi_returns,
+        "observed_interruption_count": len(interruption_events),
+        "avg_service_interruption_ms": avg_service_interruption_ms,
+    }
+
+
 def _print_report(rows: Iterable[dict], summary: Optional[dict]) -> None:
     """Print a human-readable report to stdout."""
     rows = list(rows)
@@ -355,7 +421,10 @@ def _write_csv(rows: Iterable[dict], csv_path: Path) -> None:
     print(f"Wrote CSV report to {csv_path}")
 
 
-def _write_markdown(rows: Iterable[dict], md_path: Path) -> None:
+def _write_markdown(rows: Iterable[dict],
+                    md_path: Path,
+                    kpi_snapshot: Optional[dict] = None,
+                    switch_events: Optional[List[dict]] = None) -> None:
     rows = list(rows)
     if not rows:
         print(f"No data to write to {md_path}")
@@ -390,6 +459,57 @@ def _write_markdown(rows: Iterable[dict], md_path: Path) -> None:
                 f"| **Average** |  |  | {summary['pdr_percent']:.2f} | {summary['avg_delay_ms']:.2f} | "
                 f"{summary['avg_jitter_ms']:.2f} | {summary['throughput_mbps']:.4f} |  |  |  |\n"
             )
+
+        if kpi_snapshot is not None:
+            md_file.write("\n## Phase 1 KPI Snapshot\n\n")
+            md_file.write(f"- Active clients: **{kpi_snapshot['active_clients']}**\n")
+            md_file.write(
+                f"- Delay target compliance (<= {kpi_snapshot['delay_target_ms']:.1f} ms): "
+                f"**{kpi_snapshot['delay_compliant_clients']}/{kpi_snapshot['active_clients']} "
+                f"({kpi_snapshot['delay_compliance_pct']:.2f}%)**\n"
+            )
+            md_file.write(
+                f"- Aggregate reception rate (sum throughput, active clients): "
+                f"**{kpi_snapshot['aggregate_rx_mbps']:.4f} Mbps**\n"
+            )
+            md_file.write(
+                f"- Data reception rate for >=3 clients (Phase 1 KPI): "
+                f"**{kpi_snapshot['multi_client_reception_rate_mbps']:.4f} Mbps**\n"
+            )
+            md_file.write(
+                f"- Switch events: **{kpi_snapshot['switch_event_count']}** "
+                f"(to cellular: {kpi_snapshot['switches_to_cellular']}, "
+                f"to WiFi: {kpi_snapshot['switches_to_wifi']})\n"
+            )
+            md_file.write(
+                f"- Avg switching latency (service interruption = recovered-lastOK): "
+                f"**{kpi_snapshot['avg_service_interruption_ms']:.3f} ms**\n"
+                if kpi_snapshot["observed_interruption_count"] > 0
+                else "- Avg switching latency (service interruption = recovered-lastOK): **N/A**\n"
+            )
+
+        if switch_events is not None:
+            md_file.write("\n## Switching Events\n\n")
+            if not switch_events:
+                md_file.write("No switching events captured.\n")
+            else:
+                md_file.write(
+                    "| STA | From | To | Last OK (s) | Recovered (s) | Switching Latency (ms) | RSSI (dBm) | Service IP |\n"
+                )
+                md_file.write(
+                    "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+                )
+                for event in switch_events:
+                    md_file.write(
+                        f"| {event['sta_index']} | "
+                        f"{event['from']} | "
+                        f"{event['to']} | "
+                        f"{event['last_ok_before_s']:.6f} | "
+                        f"{event['first_rx_after_switch_s']:.6f} | "
+                        f"{event['service_interruption_ms']:.3f} | "
+                        f"{event['rssi_avg_dbm']:.2f} | "
+                        f"{event['service_ip']} |\n"
+                    )
     print(f"Wrote Markdown report to {md_path}")
 
 
@@ -418,6 +538,21 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         type=Path,
         help="Optional path to write metrics as Markdown",
     )
+    parser.add_argument(
+        "--switch-log",
+        type=Path,
+        default=None,
+        help=(
+            "Path to switch log CSV. If omitted, defaults to "
+            "<xml-dir>/wifi-hybrid-switch_log.csv when available."
+        ),
+    )
+    parser.add_argument(
+        "--delay-target-ms",
+        type=float,
+        default=200.0,
+        help="Delay target threshold in milliseconds for KPI compliance (default: %(default)s)",
+    )
     return parser.parse_args(list(argv))
 
 
@@ -433,13 +568,40 @@ def main(argv: Iterable[str] | None = None) -> int:
     sta_metrics = _aggregate_sta_metrics(flows, classifier)
     rows = list(_format_rows(sta_metrics, args.sim_time))
     summary = _compute_summary(rows)
+    switch_log_path = args.switch_log if args.switch_log else xml_path.parent / "wifi-hybrid-switch_log.csv"
+    switch_events = _parse_switch_events(switch_log_path)
+    kpi_snapshot = _compute_kpi_snapshot(rows, switch_events, args.delay_target_ms)
 
     _print_report(rows, summary)
+    if switch_events:
+        print(
+            f"Switching events: {kpi_snapshot['switch_event_count']} "
+            f"(to cellular={kpi_snapshot['switches_to_cellular']}, to WiFi={kpi_snapshot['switches_to_wifi']})"
+        )
+    else:
+        print("Switching events: none")
+    if kpi_snapshot["observed_interruption_count"] > 0:
+        print(
+            f"Switching latency (service interruption = recovered-lastOK): "
+            f"{kpi_snapshot['avg_service_interruption_ms']:.3f} ms"
+        )
+    else:
+        print("Switching latency (service interruption = recovered-lastOK): none")
+    print(
+        f"Delay target compliance <= {args.delay_target_ms:.1f} ms: "
+        f"{kpi_snapshot['delay_compliant_clients']}/{kpi_snapshot['active_clients']} "
+        f"({kpi_snapshot['delay_compliance_pct']:.2f}%)"
+    )
+    if kpi_snapshot["active_clients"] >= 3:
+        print(
+            f"Data reception rate (>=3 clients): "
+            f"{kpi_snapshot['multi_client_reception_rate_mbps']:.4f} Mbps"
+        )
 
     if args.csv:
         _write_csv(rows, args.csv)
     if args.md:
-        _write_markdown(rows, args.md)
+        _write_markdown(rows, args.md, kpi_snapshot, switch_events)
 
     return 0
 
