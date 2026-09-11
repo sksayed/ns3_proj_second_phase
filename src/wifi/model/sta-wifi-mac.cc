@@ -1378,6 +1378,21 @@ StaWifiMac::ReceiveAssocResp(Ptr<const WifiMpdu> mpdu, uint8_t linkId)
         return;
     }
 
+    // Robustness fix for heavy multi-AP (same-SSID) roaming: the STA may abandon
+    // an association attempt (e.g. after MissedBeacons) and start a new attempt
+    // with a different AP before a delayed/retransmitted Association Response from
+    // the previous AP is delivered. Such a stale response carries a BSSID that no
+    // longer matches this link's current target BSSID. Processing it would violate
+    // the invariant asserted below (and abort the simulation), so ignore it and
+    // keep waiting for the response from the AP we are currently associating with.
+    if (const auto& targetBssid = GetLink(linkId).bssid;
+        targetBssid.has_value() && *targetBssid != hdr.GetAddr3())
+    {
+        NS_LOG_DEBUG("Ignoring stale Association Response from "
+                     << hdr.GetAddr3() << " (current target BSSID is " << *targetBssid << ")");
+        return;
+    }
+
     if (m_assocRequestEvent.IsPending())
     {
         m_assocRequestEvent.Cancel();

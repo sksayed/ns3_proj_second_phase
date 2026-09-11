@@ -351,6 +351,11 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
         for event in switch_events
         if event.get("status") == "unresolved"
     ]
+    # "superseded": a newer switch for the same STA was decided before service
+    # recovered on this one (head-of-line fix). Terminal, distinct from timeout.
+    superseded_events = [
+        event for event in switch_events if event.get("status") == "superseded"
+    ]
     avg_resolved_service_interruption_ms = (
         sum(event["service_interruption_ms"] for event in resolved_events) / len(resolved_events)
         if resolved_events
@@ -370,6 +375,7 @@ def _compute_kpi_snapshot(rows: Iterable[dict], switch_events: Iterable[dict], d
         "resolved_interruption_count": len(resolved_events),
         "timeout_interruption_count": len(timeout_events),
         "unresolved_interruption_count": len(unresolved_events),
+        "superseded_interruption_count": len(superseded_events),
         "avg_resolved_service_interruption_ms": avg_resolved_service_interruption_ms,
     }
 
@@ -512,6 +518,7 @@ def _write_markdown(rows: Iterable[dict],
             md_file.write(
                 f"- Switching outcomes: **resolved={kpi_snapshot['resolved_interruption_count']}**, "
                 f"**timeout={kpi_snapshot['timeout_interruption_count']}**, "
+                f"**superseded={kpi_snapshot['superseded_interruption_count']}**, "
                 f"**unresolved={kpi_snapshot['unresolved_interruption_count']}**\n"
             )
             md_file.write(
@@ -588,10 +595,11 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--exclude-zero-rx",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help=(
-            "Exclude STA rows with zero received packets from KPI/report outputs. "
-            "Useful to filter inactive/no-reception clients."
+            "Exclude STA rows with zero received packets from KPI/report outputs "
+            "(default: enabled). Use --no-exclude-zero-rx to keep them."
         ),
     )
     return parser.parse_args(list(argv))
@@ -633,6 +641,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     print(
         f"Switching outcomes: resolved={kpi_snapshot['resolved_interruption_count']}, "
         f"timeout={kpi_snapshot['timeout_interruption_count']}, "
+        f"superseded={kpi_snapshot['superseded_interruption_count']}, "
         f"unresolved={kpi_snapshot['unresolved_interruption_count']}"
     )
     print(

@@ -1,0 +1,9 @@
+run_id,mobility,seed,guard_enabled,status,elapsed_sec,switch_events,intra_mesh,wifi_to_cell,cell_to_wifi
+gaussmarkov_seed101_guard_on,gaussmarkov,101,True,ok,229.0,59,13,27,19
+gaussmarkov_seed101_guard_off,gaussmarkov,101,False,ok,283.3,58,16,25,17
+patrol_seed101_guard_on,patrol,101,True,ok,391.4,23,2,14,7
+patrol_seed101_guard_off,patrol,101,False,ok,400.5,21,2,13,6
+transport_seed101_guard_off,transport,101,False,ok,274.1,53,3,29,21
+transport_seed101_guard_on,transport,101,True,ok,274.7,53,3,29,21
+work_seed101_guard_off,work,101,False,ok,239.3,36,2,19,15
+work_seed101_guard_on,work,101,True,ok,237.9,35,1,19,15

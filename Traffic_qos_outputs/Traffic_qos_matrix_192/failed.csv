@@ -1,0 +1,1 @@
+run_id,status,exit_code,elapsed_sec,scenario_dir,cellularMode,hotspotBand,numStaNodes,payload,flowScale,rngSeed,simTime,switch_events,resolved,timeout,superseded,error

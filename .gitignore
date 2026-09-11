@@ -25,6 +25,21 @@ testpy-output
 bindings/python/pybindgen/
 
 venv/
+.venv/
+
+# Generated experiment outputs (keep local, don't version)
+hybrid_test_results/
+
+# Heavy per-run simulation trees stay on the workstation.
+# Source code, PDF/MD reports, and summary CSVs are committed explicitly
+# (already-tracked files under these trees remain versioned).
+Traffic_qos_outputs/
+Waypoint_outputs/
+
+# Windows download metadata / local junk
+*:Zone.Identifier
+**/*:Zone.Identifier
+.DS_Store
 
 ms_print.*
 massif.*

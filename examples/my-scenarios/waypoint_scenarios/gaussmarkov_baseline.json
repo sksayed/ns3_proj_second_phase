@@ -1,0 +1,13 @@
+{
+  "robotType": "n/a",
+  "description": "Existing Gauss-Markov random-walk baseline, unchanged. Run at the same speeds/seeds as the waypoint scenarios so switching frequency and RSSI patterns are directly comparable (section 2.4 of the enhancement plan).",
+  "mobilityModel": "gaussmarkov",
+  "numStaNodes": 5,
+  "simTime": 90,
+  "speedsMps": [0.5, 2.0, 5.0],
+  "seeds": [7, 8, 9],
+  "cellularMode": "lte",
+  "hotspotBand": "5g",
+  "meshConfig": 1,
+  "outputRoot": "Waypoint_outputs/gaussmarkov_baseline"
+}

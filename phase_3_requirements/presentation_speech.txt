@@ -1,0 +1,172 @@
+================================================================================
+PRESENTATION SPEECH — SLIDE BY SLIDE
+RSSI/PDR-Based Automatic WiFi Mesh-Cellular Failover for Multi-Robot
+Communication at Construction Sites
+PIC Lab, KIT · 2026
+--------------------------------------------------------------------------------
+Total runtime: ~8-10 minutes (roughly 30-60 seconds per slide)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SLIDE 1 — COVER
+--------------------------------------------------------------------------------
+Good [morning/afternoon], everyone. Thank you for the time. Today I want to
+introduce a technology that solves a very specific but growing problem: how do
+you keep a whole team of robots on a construction site reliably connected — all
+the time, without anyone lifting a finger. Our approach is an automatic WiFi
+mesh-to-cellular failover system that keeps those robots coordinated below a
+two-hundred-millisecond budget. Let me walk you through the idea, how it works,
+and where it's headed.
+
+
+--------------------------------------------------------------------------------
+SLIDE 2 — CONTENTS
+--------------------------------------------------------------------------------
+Here's the path I'll take you through. First, the problem — why a single network
+just isn't enough on a jobsite. Then our solution and the core technology behind
+it, the architecture, and how a handover actually works. After that, what makes
+us different, what we've already validated, the market and business model, and
+finally the roadmap. I'll keep it tight.
+
+
+--------------------------------------------------------------------------------
+SLIDE 3 — THE PROBLEM
+--------------------------------------------------------------------------------
+Construction sites are increasingly run by teams of robots that have to behave
+like one coordinated system — not isolated machines. That coordination needs
+near-real-time sync, under two hundred milliseconds. The catch is that no single
+on-site network delivers that. A WiFi mesh is fast and cheap, but it fades the
+moment you put concrete and steel between nodes. Cellular covers the whole site,
+but it's slower and expensive to lean on constantly. And when the link drops,
+it's not a minor glitch — the fleet loses coordination, TCP sessions die and have
+to restart, someone has to manually reconfigure the network, and safety-critical
+work stops. Our insight is simple: use WiFi where it's strong, cellular where it
+isn't, and switch fast enough that the robot never notices.
+
+
+--------------------------------------------------------------------------------
+SLIDE 4 — OUR SOLUTION
+--------------------------------------------------------------------------------
+So we built a network that switches itself. Each robot keeps one continuous
+identity, and a hybrid controller quietly decides which link carries its traffic.
+Four things fall out of that. The robot is always connected — the system picks
+the link, never the operator. Failover is seamless — traffic slides to cellular
+as WiFi fades and back when it recovers, with the session intact. Every switch is
+measured per robot against that latency target. And it's technology-neutral — the
+exact same controller runs over LTE or 5G. We deliver this two ways: as an
+embedded module inside the gateway the robot already carries, and as an
+operator-facing assurance layer for fleet-wide reporting.
+
+
+--------------------------------------------------------------------------------
+SLIDE 5 — CORE TECHNOLOGY
+--------------------------------------------------------------------------------
+Here's the engine. The controller re-checks every robot twice a second, and it
+makes decisions on four principles. First, dual-signal fusion — it blends a
+smoothed RSSI signal with a one-second packet-delivery ratio, so a momentary
+radio dip alone never triggers a needless switch. Second, hysteresis — the
+threshold to come back to WiFi sits three decibels above the one to leave it, and
+has to hold for two checks, so it never oscillates at the boundary. Third, a
+staleness guard — if it hears no WiFi frame for three seconds, it fails over
+anyway, catching slow fades the thresholds would miss. And fourth,
+make-before-break routing — the new path is installed before the old one is
+dropped, so a live TCP session survives the handover. On the right you can see
+the actual tuned values.
+
+
+--------------------------------------------------------------------------------
+SLIDE 6 — ARCHITECTURE
+--------------------------------------------------------------------------------
+Architecturally, the trick is on the right: one service IP, two paths. We have a
+four-node 802.11s mesh with dual-band access points, and a single macro cell —
+LTE or 5G. Both paths lead to the same destination address. That's the key — it
+means a handover is just an internal routing change, not a reconnection to a new
+endpoint, which is exactly why sessions survive. And we model propagation with
+one building-aware loss model applied consistently across WiFi, LTE, and 5G on a
+fixed four-hundred-by-four-hundred-meter site, so the comparison between
+technologies is genuinely like-for-like.
+
+
+--------------------------------------------------------------------------------
+SLIDE 7 — HANDOVER LOGIC
+--------------------------------------------------------------------------------
+Every cycle the controller does four things: it senses signal, delivery, and time
+since the last frame; it decides using the thresholds and hysteresis; it acts
+with make-before-break rerouting; and it records the switch and measures the
+interruption. The decision rules are on the right. Notice they're deliberately
+asymmetric — it's easy to leave WiFi when things degrade, but hard to come back;
+you need a stronger, sustained recovery. That bias keeps the system on the
+preferred WiFi link whenever it genuinely can, without ever flapping between the
+two.
+
+
+--------------------------------------------------------------------------------
+SLIDE 8 — DIFFERENTIATORS
+--------------------------------------------------------------------------------
+So what makes this different from off-the-shelf multipath solutions? Four things.
+One — we do joint, environment-tuned switching using both signal and delivery,
+and we validate it against real access-point hardware profiles, not idealized
+radios. Two — we give a measurable latency guarantee: a quantified per-switch
+interruption against a two-hundred-millisecond budget, which is the number a
+robotics customer actually cares about. Three — we run a genuine head-to-head of
+LTE versus 5G in the same role and topology, which almost no public study does
+for this use case. And four — it's session-preserving by design, keeping
+interruption in the millisecond range instead of a full timeout-and-retry.
+
+
+--------------------------------------------------------------------------------
+SLIDE 9 — VALIDATION
+--------------------------------------------------------------------------------
+This isn't just a concept. Phase One is complete — as of March 2026 we've built
+and run a full NS-3 comparison of WiFi-plus-LTE against WiFi-plus-5G across
+multiple seeds and node counts. The controller is validated, the measurement
+pipeline logs every switch, and we scaled it to twenty mobile robots that all
+switched automatically in both directions. Critically, every client held under
+two hundred milliseconds across all runs, and we confirmed reliable return from
+cellular back to WiFi — not just the outbound failover. I'll be honest about the
+limits: it hasn't been field-tested on hardware yet, and we've got more
+simulation planned to strengthen the statistics.
+
+
+--------------------------------------------------------------------------------
+SLIDE 10 — MARKET & MODEL
+--------------------------------------------------------------------------------
+On the opportunity — we sit at the intersection of two fast-growing markets.
+Construction robotics is heading from about six and a half billion dollars to
+over fifteen billion by 2030, and private 5G is growing even faster, toward a
+hundred and fifty billion by 2033. The driver is concrete: the US alone needed
+around five hundred and forty-six thousand more construction workers in 2023, and
+the same shortage exists in Germany, Japan, and Korea — so automation isn't
+optional. We monetize three ways: licensing the controller IP to gateway makers
+for early revenue, a recurring connectivity-assurance subscription, and one-time
+integration fees with telecom partners.
+
+
+--------------------------------------------------------------------------------
+SLIDE 11 — ROADMAP
+--------------------------------------------------------------------------------
+Here's the path forward. The foundation — simulation of the controller and
+measurement pipeline — is done. We're now in enhanced simulation: realistic
+waypoint mobility, QoS traffic, mesh handover modeling, and more statistical
+rigor. After that, lab validation on a real hardware testbed, then a field trial
+on a live site to prove seamless failover and the latency target in the real
+world. Commercially, over one to three years, we file the IP, license the
+controller to gateway makers and integrators, and layer the assurance service on
+top.
+
+
+--------------------------------------------------------------------------------
+SLIDE 12 — CLOSING
+--------------------------------------------------------------------------------
+To sum up — the whole point is keeping robot fleets connected without anyone
+noticing the switch. We fuse two signals with hysteresis so switches are never
+false or flapping; we preserve live sessions through make-before-break; we've hit
+the sub-two-hundred-millisecond target with up to twenty robots; and we've done
+the rare direct LTE-versus-5G comparison for this domain. Phase One is validated,
+the lab and field work is mapped out, and the path to market is clear. Thank you
+— I'd be glad to take your questions.
+
+================================================================================
+END OF SPEECH
+================================================================================

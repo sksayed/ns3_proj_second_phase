@@ -1,0 +1,769 @@
+run_id,cellularMode,hotspotBand,numStaNodes,payload,rngSeed,flow,leg,sub_flows,tx_packets,rx_packets,pdr_pct,mean_delay_ms,p99_ms,throughput_mbps,dark_sub_flows
+lte_2g_sta10_10kb_seed7,lte,2g,10,10kb,7,Control,WiFi mesh,10,6020,4449,73.9037,25.4468,955.0000,0.624046,2
+lte_2g_sta10_10kb_seed7,lte,2g,10,10kb,7,Sensor,WiFi mesh,10,9874,9674,97.9745,10.7453,93.0000,1.869158,0
+lte_2g_sta10_10kb_seed7,lte,2g,10,10kb,7,Video,WiFi mesh,10,12213,12020,98.4197,5.7000,34.0000,2.323344,0
+lte_2g_sta10_10kb_seed7,lte,2g,10,10kb,7,Control,Cellular,10,3600,3592,99.7778,15.6338,34.0000,0.503838,0
+lte_2g_sta10_10kb_seed8,lte,2g,10,10kb,8,Control,WiFi mesh,10,6790,5406,79.6171,2.7461,21.0000,0.758282,2
+lte_2g_sta10_10kb_seed8,lte,2g,10,10kb,8,Sensor,WiFi mesh,10,12456,12364,99.2614,7.5922,67.0000,2.389942,0
+lte_2g_sta10_10kb_seed8,lte,2g,10,10kb,8,Video,WiFi mesh,10,15551,15380,98.9004,4.9434,53.0000,2.973840,1
+lte_2g_sta10_10kb_seed8,lte,2g,10,10kb,8,Control,Cellular,10,2830,2815,99.4700,17.6175,65.0000,0.394851,0
+lte_2g_sta10_10kb_seed9,lte,2g,10,10kb,9,Control,WiFi mesh,10,6900,5231,75.8116,9.3520,317.0000,0.733735,4
+lte_2g_sta10_10kb_seed9,lte,2g,10,10kb,9,Sensor,WiFi mesh,10,10773,10606,98.4498,10.9195,161.0000,2.049594,0
+lte_2g_sta10_10kb_seed9,lte,2g,10,10kb,9,Video,WiFi mesh,10,13340,13101,98.2084,9.7999,113.0000,2.532626,0
+lte_2g_sta10_10kb_seed9,lte,2g,10,10kb,9,Control,Cellular,10,2720,2717,99.8897,15.3871,64.0000,0.381105,0
+lte_2g_sta10_1mb_seed7,lte,2g,10,1mb,7,Control,WiFi mesh,10,5890,3344,56.7742,45.1676,297.0000,0.469052,4
+lte_2g_sta10_1mb_seed7,lte,2g,10,1mb,7,Sensor,WiFi mesh,10,61230,59255,96.7745,92.6228,410.0000,11.468040,5
+lte_2g_sta10_1mb_seed7,lte,2g,10,1mb,7,Video,WiFi mesh,10,77774,76284,98.0842,32.1335,220.0000,14.764854,4
+lte_2g_sta10_1mb_seed7,lte,2g,10,1mb,7,Control,Cellular,10,3730,3471,93.0563,16.3532,41.0000,0.486866,1
+lte_2g_sta10_1mb_seed8,lte,2g,10,1mb,8,Control,WiFi mesh,10,6110,2177,35.6301,25.0645,360.0000,0.305361,8
+lte_2g_sta10_1mb_seed8,lte,2g,10,1mb,8,Sensor,WiFi mesh,10,32936,31784,96.5023,36.4767,184.0000,6.149654,7
+lte_2g_sta10_1mb_seed8,lte,2g,10,1mb,8,Video,WiFi mesh,10,35199,34432,97.8210,37.2544,179.0000,6.662121,7
+lte_2g_sta10_1mb_seed8,lte,2g,10,1mb,8,Control,Cellular,10,3510,3462,98.6325,18.7820,182.0000,0.485603,0
+lte_2g_sta10_1mb_seed9,lte,2g,10,1mb,9,Control,WiFi mesh,10,5700,2515,44.1228,73.2985,626.0000,0.352771,5
+lte_2g_sta10_1mb_seed9,lte,2g,10,1mb,9,Sensor,WiFi mesh,10,37539,36091,96.1427,50.2060,260.0000,6.983490,4
+lte_2g_sta10_1mb_seed9,lte,2g,10,1mb,9,Video,WiFi mesh,10,34183,32837,96.0624,48.2027,274.0000,6.353889,4
+lte_2g_sta10_1mb_seed9,lte,2g,10,1mb,9,Control,Cellular,10,3920,3852,98.2653,34.6744,304.0000,0.540307,0
+lte_2g_sta10_2mb_seed7,lte,2g,10,2mb,7,Control,WiFi mesh,10,6810,1988,29.1924,56.1973,433.0000,0.278850,6
+lte_2g_sta10_2mb_seed7,lte,2g,10,2mb,7,Sensor,WiFi mesh,10,50115,48298,96.3743,47.3217,249.0000,9.346951,7
+lte_2g_sta10_2mb_seed7,lte,2g,10,2mb,7,Video,WiFi mesh,10,59567,57829,97.0823,37.8091,181.0000,11.191966,6
+lte_2g_sta10_2mb_seed7,lte,2g,10,2mb,7,Control,Cellular,10,2810,2716,96.6548,32.1753,546.0000,0.380964,0
+lte_2g_sta10_2mb_seed8,lte,2g,10,2mb,8,Control,WiFi mesh,10,6870,3200,46.5793,47.7875,366.0000,0.448853,4
+lte_2g_sta10_2mb_seed8,lte,2g,10,2mb,8,Sensor,WiFi mesh,10,29845,28450,95.3259,52.3677,273.0000,5.504192,4
+lte_2g_sta10_2mb_seed8,lte,2g,10,2mb,8,Video,WiFi mesh,10,42573,41119,96.5847,56.5311,259.0000,7.956724,4
+lte_2g_sta10_2mb_seed8,lte,2g,10,2mb,8,Control,Cellular,10,2750,2685,97.6364,28.4269,300.0000,0.376616,0
+lte_2g_sta10_2mb_seed9,lte,2g,10,2mb,9,Control,WiFi mesh,10,6640,3165,47.6657,75.8697,576.0000,0.443944,6
+lte_2g_sta10_2mb_seed9,lte,2g,10,2mb,9,Sensor,WiFi mesh,10,46852,44640,95.2788,54.8327,348.0000,8.638949,6
+lte_2g_sta10_2mb_seed9,lte,2g,10,2mb,9,Video,WiFi mesh,10,45957,43939,95.6089,48.6583,328.0000,8.503235,6
+lte_2g_sta10_2mb_seed9,lte,2g,10,2mb,9,Control,Cellular,9,2980,2908,97.5839,39.4010,400.0000,0.407895,0
+lte_2g_sta10_50kb_seed7,lte,2g,10,50kb,7,Control,WiFi mesh,10,5550,3926,70.7387,4.8230,49.0000,0.550687,1
+lte_2g_sta10_50kb_seed7,lte,2g,10,50kb,7,Sensor,WiFi mesh,10,25513,25102,98.3891,13.3887,63.0000,4.856019,1
+lte_2g_sta10_50kb_seed7,lte,2g,10,50kb,7,Video,WiFi mesh,10,31472,30975,98.4208,11.2149,55.0000,5.993032,1
+lte_2g_sta10_50kb_seed7,lte,2g,10,50kb,7,Control,Cellular,10,4070,3962,97.3464,16.1798,48.0000,0.555737,1
+lte_2g_sta10_50kb_seed8,lte,2g,10,50kb,8,Control,WiFi mesh,10,5990,4067,67.8965,3.5644,24.0000,0.570465,4
+lte_2g_sta10_50kb_seed8,lte,2g,10,50kb,8,Sensor,WiFi mesh,10,23244,22960,98.7782,10.6439,135.0000,4.441142,2
+lte_2g_sta10_50kb_seed8,lte,2g,10,50kb,8,Video,WiFi mesh,10,29905,29552,98.8196,6.0102,43.0000,5.717539,1
+lte_2g_sta10_50kb_seed8,lte,2g,10,50kb,8,Control,Cellular,10,3630,3595,99.0358,20.1709,176.0000,0.504259,0
+lte_2g_sta10_50kb_seed9,lte,2g,10,50kb,9,Control,WiFi mesh,10,5630,3739,66.4121,7.6304,129.0000,0.524457,3
+lte_2g_sta10_50kb_seed9,lte,2g,10,50kb,9,Sensor,WiFi mesh,10,24694,24156,97.8213,13.2940,140.0000,4.672874,1
+lte_2g_sta10_50kb_seed9,lte,2g,10,50kb,9,Video,WiFi mesh,10,33518,32955,98.3203,11.5647,71.0000,6.376360,1
+lte_2g_sta10_50kb_seed9,lte,2g,10,50kb,9,Control,Cellular,10,3990,3956,99.1479,28.9748,278.0000,0.554895,0
+lte_2g_sta15_10kb_seed7,lte,2g,15,10kb,7,Control,WiFi mesh,15,7740,4245,54.8450,18.3915,463.0000,0.595432,7
+lte_2g_sta15_10kb_seed7,lte,2g,15,10kb,7,Sensor,WiFi mesh,15,12812,12423,96.9638,11.5943,111.0000,2.399501,3
+lte_2g_sta15_10kb_seed7,lte,2g,15,10kb,7,Video,WiFi mesh,15,16136,15698,97.2856,8.6063,48.0000,3.033727,3
+lte_2g_sta15_10kb_seed7,lte,2g,15,10kb,7,Control,Cellular,15,6390,6381,99.8592,19.2423,139.0000,0.895042,0
+lte_2g_sta15_10kb_seed8,lte,2g,15,10kb,8,Control,WiFi mesh,15,8220,5328,64.8175,15.7099,379.0000,0.747341,6
+lte_2g_sta15_10kb_seed8,lte,2g,15,10kb,8,Sensor,WiFi mesh,15,17551,17161,97.7779,17.2033,239.0000,3.316778,4
+lte_2g_sta15_10kb_seed8,lte,2g,15,10kb,8,Video,WiFi mesh,15,21812,21327,97.7765,13.7611,155.0000,4.123315,4
+lte_2g_sta15_10kb_seed8,lte,2g,15,10kb,8,Control,Cellular,15,5910,5406,91.4721,27.0324,213.0000,0.758282,1
+lte_2g_sta15_10kb_seed9,lte,2g,15,10kb,9,Control,WiFi mesh,15,8740,5623,64.3364,8.4563,126.0000,0.788719,5
+lte_2g_sta15_10kb_seed9,lte,2g,15,10kb,9,Sensor,WiFi mesh,15,14933,14660,98.1718,15.4409,164.0000,2.832584,2
+lte_2g_sta15_10kb_seed9,lte,2g,15,10kb,9,Video,WiFi mesh,15,18092,17753,98.1262,12.2307,124.0000,3.431389,2
+lte_2g_sta15_10kb_seed9,lte,2g,15,10kb,9,Control,Cellular,15,5390,4994,92.6531,37.1320,431.0000,0.700492,2
+lte_2g_sta15_1mb_seed7,lte,2g,15,1mb,7,Control,WiFi mesh,15,9470,4914,51.8902,46.8032,484.0000,0.689270,6
+lte_2g_sta15_1mb_seed7,lte,2g,15,1mb,7,Sensor,WiFi mesh,15,46643,45458,97.4594,59.3201,378.0000,8.794705,7
+lte_2g_sta15_1mb_seed7,lte,2g,15,1mb,7,Video,WiFi mesh,15,68297,66717,97.6866,32.7764,264.0000,12.910261,7
+lte_2g_sta15_1mb_seed7,lte,2g,15,1mb,7,Control,Cellular,13,4660,4594,98.5837,14.9724,32.0000,0.644385,0
+lte_2g_sta15_1mb_seed8,lte,2g,15,1mb,8,Control,WiFi mesh,15,8470,3866,45.6434,66.7859,489.0000,0.542271,9
+lte_2g_sta15_1mb_seed8,lte,2g,15,1mb,8,Sensor,WiFi mesh,15,62335,59655,95.7006,67.1570,467.0000,11.543803,5
+lte_2g_sta15_1mb_seed8,lte,2g,15,1mb,8,Video,WiFi mesh,15,88083,85883,97.5024,39.1187,299.0000,16.621357,7
+lte_2g_sta15_1mb_seed8,lte,2g,15,1mb,8,Control,Cellular,15,5660,5275,93.1979,43.8173,714.0000,0.739907,1
+lte_2g_sta15_1mb_seed9,lte,2g,15,1mb,9,Control,WiFi mesh,15,9490,5131,54.0674,158.4129,3020.0000,0.719708,5
+lte_2g_sta15_1mb_seed9,lte,2g,15,1mb,9,Sensor,WiFi mesh,15,48494,46442,95.7685,64.9913,411.0000,8.984836,6
+lte_2g_sta15_1mb_seed9,lte,2g,15,1mb,9,Video,WiFi mesh,15,65145,63719,97.8110,38.0065,297.0000,12.329663,7
+lte_2g_sta15_1mb_seed9,lte,2g,15,1mb,9,Control,Cellular,13,4640,4267,91.9612,58.9099,534.0000,0.598518,1
+lte_2g_sta15_2mb_seed7,lte,2g,15,2mb,7,Control,WiFi mesh,15,9960,4497,45.1506,38.7457,362.0000,0.630779,7
+lte_2g_sta15_2mb_seed7,lte,2g,15,2mb,7,Sensor,WiFi mesh,15,54928,52615,95.7890,45.5587,254.0000,10.180672,8
+lte_2g_sta15_2mb_seed7,lte,2g,15,2mb,7,Video,WiFi mesh,15,76434,74299,97.2067,26.8177,153.0000,14.378694,9
+lte_2g_sta15_2mb_seed7,lte,2g,15,2mb,7,Control,Cellular,15,4170,4039,96.8585,23.0705,98.0000,0.566537,0
+lte_2g_sta15_2mb_seed8,lte,2g,15,2mb,8,Control,WiFi mesh,15,9580,3118,32.5470,77.4756,456.0000,0.437351,13
+lte_2g_sta15_2mb_seed8,lte,2g,15,2mb,8,Sensor,WiFi mesh,15,34591,32418,93.7180,64.2123,351.0000,6.270533,10
+lte_2g_sta15_2mb_seed8,lte,2g,15,2mb,8,Video,WiFi mesh,15,117544,113800,96.8148,66.1276,359.0000,22.026088,8
+lte_2g_sta15_2mb_seed8,lte,2g,15,2mb,8,Control,Cellular,15,4550,4280,94.0659,68.6306,696.0000,0.600341,0
+lte_2g_sta15_2mb_seed9,lte,2g,15,2mb,9,Control,WiFi mesh,15,9790,3750,38.3044,47.0567,387.0000,0.526000,6
+lte_2g_sta15_2mb_seed9,lte,2g,15,2mb,9,Sensor,WiFi mesh,15,73568,70939,96.4264,55.8801,296.0000,13.728198,8
+lte_2g_sta15_2mb_seed9,lte,2g,15,2mb,9,Video,WiFi mesh,15,97209,94872,97.5959,41.5173,246.0000,18.361627,8
+lte_2g_sta15_2mb_seed9,lte,2g,15,2mb,9,Control,Cellular,15,4340,3936,90.6912,44.6860,390.0000,0.552090,1
+lte_2g_sta15_50kb_seed7,lte,2g,15,50kb,7,Control,WiFi mesh,15,7810,4384,56.1332,14.4109,344.0000,0.614929,6
+lte_2g_sta15_50kb_seed7,lte,2g,15,50kb,7,Sensor,WiFi mesh,15,32752,31750,96.9406,19.2696,156.0000,6.141208,5
+lte_2g_sta15_50kb_seed7,lte,2g,15,50kb,7,Video,WiFi mesh,15,40434,39368,97.3636,13.8185,87.0000,7.616239,5
+lte_2g_sta15_50kb_seed7,lte,2g,15,50kb,7,Control,Cellular,15,6320,6260,99.0506,18.7165,70.0000,0.878069,0
+lte_2g_sta15_50kb_seed8,lte,2g,15,50kb,8,Control,WiFi mesh,15,7820,4739,60.6010,14.3835,253.0000,0.664724,8
+lte_2g_sta15_50kb_seed8,lte,2g,15,50kb,8,Sensor,WiFi mesh,15,34177,33439,97.8407,23.8211,152.0000,6.468198,5
+lte_2g_sta15_50kb_seed8,lte,2g,15,50kb,8,Video,WiFi mesh,15,41511,40631,97.8801,17.4484,75.0000,7.860570,5
+lte_2g_sta15_50kb_seed8,lte,2g,15,50kb,8,Control,Cellular,15,6310,5634,89.2868,39.8057,641.0000,0.790262,2
+lte_2g_sta15_50kb_seed9,lte,2g,15,50kb,9,Control,WiFi mesh,15,8000,4035,50.4375,21.4343,438.0000,0.565976,7
+lte_2g_sta15_50kb_seed9,lte,2g,15,50kb,9,Sensor,WiFi mesh,15,39982,38934,97.3788,24.9822,192.0000,7.532030,5
+lte_2g_sta15_50kb_seed9,lte,2g,15,50kb,9,Video,WiFi mesh,15,44475,43333,97.4323,18.0951,147.0000,8.383677,4
+lte_2g_sta15_50kb_seed9,lte,2g,15,50kb,9,Control,Cellular,15,6130,5674,92.5612,61.5705,856.0000,0.795873,1
+lte_2g_sta20_10kb_seed7,lte,2g,20,10kb,7,Control,WiFi mesh,20,12240,7448,60.8497,4.0519,26.0000,1.044706,7
+lte_2g_sta20_10kb_seed7,lte,2g,20,10kb,7,Sensor,WiFi mesh,20,19112,18744,98.0745,16.1185,163.0000,3.621755,3
+lte_2g_sta20_10kb_seed7,lte,2g,20,10kb,7,Video,WiFi mesh,20,23330,22798,97.7197,12.0352,94.0000,4.406610,3
+lte_2g_sta20_10kb_seed7,lte,2g,20,10kb,7,Control,Cellular,19,6200,5783,93.2742,62.7469,590.0000,0.811162,0
+lte_2g_sta20_10kb_seed8,lte,2g,20,10kb,8,Control,WiFi mesh,20,10590,6365,60.1039,8.2889,123.0000,0.892797,10
+lte_2g_sta20_10kb_seed8,lte,2g,20,10kb,8,Sensor,WiFi mesh,20,18980,18643,98.2244,17.2165,143.0000,3.601829,2
+lte_2g_sta20_10kb_seed8,lte,2g,20,10kb,8,Video,WiFi mesh,20,22243,21712,97.6127,12.8564,87.0000,4.195802,3
+lte_2g_sta20_10kb_seed8,lte,2g,20,10kb,8,Control,Cellular,20,7850,7526,95.8726,51.5621,387.0000,1.055647,0
+lte_2g_sta20_10kb_seed9,lte,2g,20,10kb,9,Control,WiFi mesh,20,10300,7320,71.0680,14.8517,281.0000,1.026752,8
+lte_2g_sta20_10kb_seed9,lte,2g,20,10kb,9,Sensor,WiFi mesh,20,24382,23666,97.0634,24.1130,242.0000,4.574282,6
+lte_2g_sta20_10kb_seed9,lte,2g,20,10kb,9,Video,WiFi mesh,20,30529,29604,96.9701,15.6990,119.0000,5.724065,6
+lte_2g_sta20_10kb_seed9,lte,2g,20,10kb,9,Control,Cellular,20,8140,7442,91.4251,47.3615,614.0000,1.043865,2
+lte_2g_sta20_1mb_seed7,lte,2g,20,1mb,7,Control,WiFi mesh,20,12650,4892,38.6719,39.5350,315.0000,0.686185,10
+lte_2g_sta20_1mb_seed7,lte,2g,20,1mb,7,Sensor,WiFi mesh,20,52995,50642,95.5600,51.3528,386.0000,9.797396,12
+lte_2g_sta20_1mb_seed7,lte,2g,20,1mb,7,Video,WiFi mesh,20,63638,61584,96.7724,31.6326,181.0000,11.915767,11
+lte_2g_sta20_1mb_seed7,lte,2g,20,1mb,7,Control,Cellular,16,5790,5636,97.3402,37.4729,372.0000,0.790543,0
+lte_2g_sta20_1mb_seed8,lte,2g,20,1mb,8,Control,WiFi mesh,20,10810,4433,41.0083,48.9411,467.0000,0.621802,10
+lte_2g_sta20_1mb_seed8,lte,2g,20,1mb,8,Sensor,WiFi mesh,20,44893,42760,95.2487,49.0485,273.0000,8.270694,8
+lte_2g_sta20_1mb_seed8,lte,2g,20,1mb,8,Video,WiFi mesh,20,90971,88426,97.2024,32.6043,173.0000,17.111631,9
+lte_2g_sta20_1mb_seed8,lte,2g,20,1mb,8,Control,Cellular,20,7630,7059,92.5164,73.3721,689.0000,0.990142,0
+lte_2g_sta20_1mb_seed9,lte,2g,20,1mb,9,Control,WiFi mesh,20,11210,5711,50.9456,57.3416,491.0000,0.801063,10
+lte_2g_sta20_1mb_seed9,lte,2g,20,1mb,9,Sensor,WiFi mesh,20,45894,43463,94.7030,37.6749,268.0000,8.406981,12
+lte_2g_sta20_1mb_seed9,lte,2g,20,1mb,9,Video,WiFi mesh,20,53222,50940,95.7123,33.4840,260.0000,9.854715,11
+lte_2g_sta20_1mb_seed9,lte,2g,20,1mb,9,Control,Cellular,20,7230,6695,92.6003,40.9716,526.0000,0.939085,1
+lte_2g_sta20_2mb_seed7,lte,2g,20,2mb,7,Control,WiFi mesh,20,13120,3941,30.0381,59.1666,545.0000,0.552791,16
+lte_2g_sta20_2mb_seed7,lte,2g,20,2mb,7,Sensor,WiFi mesh,20,61748,58935,95.4444,51.7806,397.0000,11.402920,15
+lte_2g_sta20_2mb_seed7,lte,2g,20,2mb,7,Video,WiFi mesh,20,107584,104447,97.0841,27.0202,242.0000,20.214229,15
+lte_2g_sta20_2mb_seed7,lte,2g,20,2mb,7,Control,Cellular,19,5320,4814,90.4887,64.8672,733.0000,0.675244,0
+lte_2g_sta20_2mb_seed8,lte,2g,20,2mb,8,Control,WiFi mesh,20,13220,3877,29.3268,62.1800,427.0000,0.543814,12
+lte_2g_sta20_2mb_seed8,lte,2g,20,2mb,8,Sensor,WiFi mesh,20,50343,47833,95.0142,60.6330,340.0000,9.252641,13
+lte_2g_sta20_2mb_seed8,lte,2g,20,2mb,8,Video,WiFi mesh,20,72640,70512,97.0705,42.1111,283.0000,13.643295,12
+lte_2g_sta20_2mb_seed8,lte,2g,20,2mb,8,Control,Cellular,20,5220,4814,92.2222,69.8921,1076.0000,0.675244,0
+lte_2g_sta20_2mb_seed9,lte,2g,20,2mb,9,Control,WiFi mesh,20,12150,5729,47.1523,101.7102,517.0000,0.803588,9
+lte_2g_sta20_2mb_seed9,lte,2g,20,2mb,9,Sensor,WiFi mesh,20,61516,57865,94.0650,64.7093,395.0000,11.195022,11
+lte_2g_sta20_2mb_seed9,lte,2g,20,2mb,9,Video,WiFi mesh,20,39723,36706,92.4049,77.5264,394.0000,7.098639,12
+lte_2g_sta20_2mb_seed9,lte,2g,20,2mb,9,Control,Cellular,20,6290,5945,94.5151,35.9816,373.0000,0.833885,0
+lte_2g_sta20_50kb_seed7,lte,2g,20,50kb,7,Control,WiFi mesh,20,10790,5957,55.2085,25.6099,304.0000,0.835569,7
+lte_2g_sta20_50kb_seed7,lte,2g,20,50kb,7,Sensor,WiFi mesh,20,42906,41713,97.2195,34.8404,296.0000,8.068367,6
+lte_2g_sta20_50kb_seed7,lte,2g,20,50kb,7,Video,WiFi mesh,20,59508,58116,97.6608,20.6021,196.0000,11.244174,3
+lte_2g_sta20_50kb_seed7,lte,2g,20,50kb,7,Control,Cellular,19,7650,7094,92.7320,79.2549,702.0000,0.995052,0
+lte_2g_sta20_50kb_seed8,lte,2g,20,50kb,8,Control,WiFi mesh,20,9770,5114,52.3439,17.5336,273.0000,0.717324,9
+lte_2g_sta20_50kb_seed8,lte,2g,20,50kb,8,Sensor,WiFi mesh,20,33303,32226,96.7661,25.4981,208.0000,6.231312,2
+lte_2g_sta20_50kb_seed8,lte,2g,20,50kb,8,Video,WiFi mesh,20,37440,36484,97.4466,18.2473,162.0000,7.055661,2
+lte_2g_sta20_50kb_seed8,lte,2g,20,50kb,8,Control,Cellular,20,8670,8181,94.3599,44.7373,608.0000,1.147522,1
+lte_2g_sta20_50kb_seed9,lte,2g,20,50kb,9,Control,WiFi mesh,20,9260,5680,61.3391,52.4989,631.0000,0.796715,8
+lte_2g_sta20_50kb_seed9,lte,2g,20,50kb,9,Sensor,WiFi mesh,20,39909,38219,95.7654,40.4185,361.0000,7.391742,7
+lte_2g_sta20_50kb_seed9,lte,2g,20,50kb,9,Video,WiFi mesh,20,40360,38726,95.9514,35.6836,315.0000,7.489898,8
+lte_2g_sta20_50kb_seed9,lte,2g,20,50kb,9,Control,Cellular,20,9180,8344,90.8932,44.9265,535.0000,1.170385,2
+lte_2g_sta5_10kb_seed7,lte,2g,5,10kb,7,Control,WiFi mesh,5,4180,3729,89.2105,2.7731,14.0000,0.523054,3
+lte_2g_sta5_10kb_seed7,lte,2g,5,10kb,7,Sensor,WiFi mesh,5,7093,7058,99.5066,3.0414,15.0000,1.364565,0
+lte_2g_sta5_10kb_seed7,lte,2g,5,10kb,7,Video,WiFi mesh,5,8853,8799,99.3900,2.7136,15.0000,1.701622,0
+lte_2g_sta5_10kb_seed7,lte,2g,5,10kb,7,Control,Cellular,3,730,723,99.0411,24.1100,570.0000,0.101413,0
+lte_2g_sta5_10kb_seed8,lte,2g,5,10kb,8,Control,WiFi mesh,5,4090,3625,88.6308,5.3669,15.0000,0.508467,2
+lte_2g_sta5_10kb_seed8,lte,2g,5,10kb,8,Sensor,WiFi mesh,5,7323,7285,99.4811,4.5716,19.0000,1.408512,2
+lte_2g_sta5_10kb_seed8,lte,2g,5,10kb,8,Video,WiFi mesh,5,9113,9074,99.5720,3.4272,15.0000,1.754862,2
+lte_2g_sta5_10kb_seed8,lte,2g,5,10kb,8,Control,Cellular,4,820,818,99.7561,14.3679,22.0000,0.114738,0
+lte_2g_sta5_10kb_seed9,lte,2g,5,10kb,9,Control,WiFi mesh,5,4470,4277,95.6823,2.3475,12.0000,0.599921,0
+lte_2g_sta5_10kb_seed9,lte,2g,5,10kb,9,Sensor,WiFi mesh,5,8819,8759,99.3197,3.7884,55.0000,1.693878,0
+lte_2g_sta5_10kb_seed9,lte,2g,5,10kb,9,Video,WiFi mesh,5,11029,10924,99.0480,3.9134,61.0000,2.113022,0
+lte_2g_sta5_10kb_seed9,lte,2g,5,10kb,9,Control,Cellular,4,440,438,99.5455,25.9219,111.0000,0.061437,0
+lte_2g_sta5_1mb_seed7,lte,2g,5,1mb,7,Control,WiFi mesh,5,3700,2055,55.5405,28.9829,312.0000,0.288248,2
+lte_2g_sta5_1mb_seed7,lte,2g,5,1mb,7,Sensor,WiFi mesh,5,34285,33717,98.3433,22.9294,192.0000,6.525747,2
+lte_2g_sta5_1mb_seed7,lte,2g,5,1mb,7,Video,WiFi mesh,5,40327,39883,98.8990,20.5461,184.0000,7.719671,2
+lte_2g_sta5_1mb_seed7,lte,2g,5,1mb,7,Control,Cellular,5,1210,1205,99.5868,27.3948,232.0000,0.169021,0
+lte_2g_sta5_1mb_seed8,lte,2g,5,1mb,8,Control,WiFi mesh,5,3430,1524,44.4315,38.5574,334.0000,0.213766,5
+lte_2g_sta5_1mb_seed8,lte,2g,5,1mb,8,Sensor,WiFi mesh,5,22833,22408,98.1387,28.3585,151.0000,4.335953,3
+lte_2g_sta5_1mb_seed8,lte,2g,5,1mb,8,Video,WiFi mesh,5,27178,26862,98.8373,32.6386,138.0000,5.198247,3
+lte_2g_sta5_1mb_seed8,lte,2g,5,1mb,8,Control,Cellular,4,1480,1468,99.1892,21.1255,121.0000,0.205911,0
+lte_2g_sta5_1mb_seed9,lte,2g,5,1mb,9,Control,WiFi mesh,5,3260,1294,39.6933,49.1846,728.0000,0.181505,4
+lte_2g_sta5_1mb_seed9,lte,2g,5,1mb,9,Sensor,WiFi mesh,5,28471,27978,98.2684,25.3324,363.0000,5.414677,4
+lte_2g_sta5_1mb_seed9,lte,2g,5,1mb,9,Video,WiFi mesh,5,29906,29394,98.2880,23.1688,376.0000,5.688814,4
+lte_2g_sta5_1mb_seed9,lte,2g,5,1mb,9,Control,Cellular,5,1650,1609,97.5152,64.6212,570.0000,0.225689,0
+lte_2g_sta5_2mb_seed7,lte,2g,5,2mb,7,Control,WiFi mesh,5,3420,1831,53.5380,36.6575,232.0000,0.256828,1
+lte_2g_sta5_2mb_seed7,lte,2g,5,2mb,7,Sensor,WiFi mesh,5,48422,47317,97.7180,40.0964,231.0000,9.158707,1
+lte_2g_sta5_2mb_seed7,lte,2g,5,2mb,7,Video,WiFi mesh,5,72911,71915,98.6340,31.2448,218.0000,13.920880,1
+lte_2g_sta5_2mb_seed7,lte,2g,5,2mb,7,Control,Cellular,5,1490,1326,88.9933,41.2875,375.0000,0.185994,0
+lte_2g_sta5_2mb_seed8,lte,2g,5,2mb,8,Control,WiFi mesh,5,3700,1200,32.4324,56.1262,438.0000,0.168320,5
+lte_2g_sta5_2mb_seed8,lte,2g,5,2mb,8,Sensor,WiFi mesh,5,21473,20457,95.2685,65.1238,388.0000,3.958239,4
+lte_2g_sta5_2mb_seed8,lte,2g,5,2mb,8,Video,WiFi mesh,5,35449,34627,97.6812,63.1026,248.0000,6.701738,4
+lte_2g_sta5_2mb_seed8,lte,2g,5,2mb,8,Control,Cellular,4,1210,1187,98.0992,23.0249,164.0000,0.166497,0
+lte_2g_sta5_2mb_seed9,lte,2g,5,2mb,9,Control,WiFi mesh,5,3590,1109,30.8914,64.4833,385.0000,0.155556,3
+lte_2g_sta5_2mb_seed9,lte,2g,5,2mb,9,Sensor,WiFi mesh,5,32448,31408,96.7949,97.3842,269.0000,6.078725,3
+lte_2g_sta5_2mb_seed9,lte,2g,5,2mb,9,Video,WiFi mesh,5,20985,19748,94.1053,89.5773,348.0000,3.821349,3
+lte_2g_sta5_2mb_seed9,lte,2g,5,2mb,9,Control,Cellular,5,1320,1269,96.1364,107.1925,732.0000,0.177998,0
+lte_2g_sta5_50kb_seed7,lte,2g,5,50kb,7,Control,WiFi mesh,5,3620,2862,79.0608,5.3214,55.0000,0.401443,4
+lte_2g_sta5_50kb_seed7,lte,2g,5,50kb,7,Sensor,WiFi mesh,5,15085,14888,98.6941,8.2667,98.0000,2.880453,1
+lte_2g_sta5_50kb_seed7,lte,2g,5,50kb,7,Video,WiFi mesh,5,18701,18538,99.1284,5.6114,81.0000,3.587093,1
+lte_2g_sta5_50kb_seed7,lte,2g,5,50kb,7,Control,Cellular,5,1290,1169,90.6202,32.8090,185.0000,0.163972,0
+lte_2g_sta5_50kb_seed8,lte,2g,5,50kb,8,Control,WiFi mesh,5,3460,2778,80.2890,3.6483,35.0000,0.389661,3
+lte_2g_sta5_50kb_seed8,lte,2g,5,50kb,8,Sensor,WiFi mesh,5,17783,17581,98.8641,8.2853,90.0000,3.401818,1
+lte_2g_sta5_50kb_seed8,lte,2g,5,50kb,8,Video,WiFi mesh,5,22209,21901,98.6132,6.6650,61.0000,4.238170,1
+lte_2g_sta5_50kb_seed8,lte,2g,5,50kb,8,Control,Cellular,5,1450,1438,99.1724,21.0269,94.0000,0.201703,0
+lte_2g_sta5_50kb_seed9,lte,2g,5,50kb,9,Control,WiFi mesh,5,3580,3137,87.6257,14.9541,320.0000,0.440017,1
+lte_2g_sta5_50kb_seed9,lte,2g,5,50kb,9,Sensor,WiFi mesh,5,17854,17687,99.0646,9.8296,95.0000,3.422339,1
+lte_2g_sta5_50kb_seed9,lte,2g,5,50kb,9,Video,WiFi mesh,5,22275,22055,99.0123,6.4360,40.0000,4.267984,1
+lte_2g_sta5_50kb_seed9,lte,2g,5,50kb,9,Control,Cellular,5,1330,1323,99.4737,23.4886,102.0000,0.185573,0
+lte_5g_sta10_10kb_seed7,lte,5g,10,10kb,7,Control,WiFi mesh,10,7610,6962,91.4849,3.4483,19.0000,0.976537,0
+lte_5g_sta10_10kb_seed7,lte,5g,10,10kb,7,Sensor,WiFi mesh,10,14716,14572,99.0215,5.7454,25.0000,2.817411,0
+lte_5g_sta10_10kb_seed7,lte,5g,10,10kb,7,Video,WiFi mesh,10,18271,18139,99.2775,5.0994,22.0000,3.507982,0
+lte_5g_sta10_10kb_seed7,lte,5g,10,10kb,7,Control,Cellular,9,2010,2004,99.7015,15.7368,44.0000,0.281094,0
+lte_5g_sta10_10kb_seed8,lte,5g,10,10kb,8,Control,WiFi mesh,10,7110,5975,84.0366,8.4341,413.0000,0.838093,4
+lte_5g_sta10_10kb_seed8,lte,5g,10,10kb,8,Sensor,WiFi mesh,10,13567,13346,98.3710,8.9324,89.0000,2.580058,3
+lte_5g_sta10_10kb_seed8,lte,5g,10,10kb,8,Video,WiFi mesh,10,16807,16559,98.5244,7.4709,46.0000,3.202094,3
+lte_5g_sta10_10kb_seed8,lte,5g,10,10kb,8,Control,Cellular,10,2510,2478,98.7251,18.7813,79.0000,0.347581,0
+lte_5g_sta10_10kb_seed9,lte,5g,10,10kb,9,Control,WiFi mesh,10,6720,5521,82.1577,2.8446,14.0000,0.774412,5
+lte_5g_sta10_10kb_seed9,lte,5g,10,10kb,9,Sensor,WiFi mesh,10,11965,11803,98.6461,6.2063,65.0000,2.281333,3
+lte_5g_sta10_10kb_seed9,lte,5g,10,10kb,9,Video,WiFi mesh,10,14850,14671,98.7946,5.5931,64.0000,2.836578,3
+lte_5g_sta10_10kb_seed9,lte,5g,10,10kb,9,Control,Cellular,9,2900,2893,99.7586,17.0917,83.0000,0.405791,0
+lte_5g_sta10_1mb_seed7,lte,5g,10,1mb,7,Control,WiFi mesh,10,6200,4309,69.5000,23.0124,418.0000,0.604409,1
+lte_5g_sta10_1mb_seed7,lte,5g,10,1mb,7,Sensor,WiFi mesh,10,77901,76805,98.5931,14.9096,141.0000,14.865720,2
+lte_5g_sta10_1mb_seed7,lte,5g,10,1mb,7,Video,WiFi mesh,10,85828,84692,98.6764,8.8392,85.0000,16.392643,2
+lte_5g_sta10_1mb_seed7,lte,5g,10,1mb,7,Control,Cellular,10,3420,3368,98.4795,14.1158,28.0000,0.472418,0
+lte_5g_sta10_1mb_seed8,lte,5g,10,1mb,8,Control,WiFi mesh,10,6090,3448,56.6174,33.4490,415.0000,0.483639,5
+lte_5g_sta10_1mb_seed8,lte,5g,10,1mb,8,Sensor,WiFi mesh,10,76195,74569,97.8660,26.5741,229.0000,14.432830,5
+lte_5g_sta10_1mb_seed8,lte,5g,10,1mb,8,Video,WiFi mesh,10,95190,93758,98.4956,16.4416,150.0000,18.147821,4
+lte_5g_sta10_1mb_seed8,lte,5g,10,1mb,8,Control,Cellular,10,3530,3425,97.0255,25.1700,149.0000,0.480413,0
+lte_5g_sta10_1mb_seed9,lte,5g,10,1mb,9,Control,WiFi mesh,10,6350,2932,46.1732,46.0666,447.0000,0.411262,4
+lte_5g_sta10_1mb_seed9,lte,5g,10,1mb,9,Sensor,WiFi mesh,10,28219,27482,97.3883,9.8873,92.0000,5.316787,6
+lte_5g_sta10_1mb_seed9,lte,5g,10,1mb,9,Video,WiFi mesh,10,49110,48109,97.9617,22.1868,187.0000,9.310174,6
+lte_5g_sta10_1mb_seed9,lte,5g,10,1mb,9,Control,Cellular,9,3270,3247,99.2966,17.0206,77.0000,0.455446,0
+lte_5g_sta10_2mb_seed7,lte,5g,10,2mb,7,Control,WiFi mesh,10,6530,2022,30.9648,55.4353,453.0000,0.283619,9
+lte_5g_sta10_2mb_seed7,lte,5g,10,2mb,7,Sensor,WiFi mesh,10,55826,54711,98.0027,18.6161,241.0000,10.588322,7
+lte_5g_sta10_2mb_seed7,lte,5g,10,2mb,7,Video,WiFi mesh,10,73595,72189,98.0895,24.8928,260.0000,13.972062,7
+lte_5g_sta10_2mb_seed7,lte,5g,10,2mb,7,Control,Cellular,10,3090,3022,97.7994,15.0169,33.0000,0.423886,0
+lte_5g_sta10_2mb_seed8,lte,5g,10,2mb,8,Control,WiFi mesh,10,7310,2624,35.8960,21.0829,332.0000,0.368060,8
+lte_5g_sta10_2mb_seed8,lte,5g,10,2mb,8,Sensor,WiFi mesh,10,103711,102247,98.5884,14.8992,108.0000,19.791664,8
+lte_5g_sta10_2mb_seed8,lte,5g,10,2mb,8,Video,WiFi mesh,10,144524,142846,98.8389,10.8668,88.0000,27.651630,8
+lte_5g_sta10_2mb_seed8,lte,5g,10,2mb,8,Control,Cellular,9,2310,2268,98.1818,15.7771,100.0000,0.318125,0
+lte_5g_sta10_2mb_seed9,lte,5g,10,2mb,9,Control,WiFi mesh,10,6760,3462,51.2130,37.1433,407.0000,0.485603,5
+lte_5g_sta10_2mb_seed9,lte,5g,10,2mb,9,Sensor,WiFi mesh,10,55820,54421,97.4937,18.9836,208.0000,10.532178,5
+lte_5g_sta10_2mb_seed9,lte,5g,10,2mb,9,Video,WiFi mesh,10,58384,57177,97.9327,26.4701,227.0000,11.065739,4
+lte_5g_sta10_2mb_seed9,lte,5g,10,2mb,9,Control,Cellular,10,2860,2839,99.2657,18.0467,154.0000,0.398217,0
+lte_5g_sta10_50kb_seed7,lte,5g,10,50kb,7,Control,WiFi mesh,10,6960,6246,89.7414,10.3453,180.0000,0.876106,0
+lte_5g_sta10_50kb_seed7,lte,5g,10,50kb,7,Sensor,WiFi mesh,10,32785,32333,98.6213,13.0647,152.0000,6.255941,0
+lte_5g_sta10_50kb_seed7,lte,5g,10,50kb,7,Video,WiFi mesh,10,41264,40825,98.9361,10.0996,125.0000,7.899992,0
+lte_5g_sta10_50kb_seed7,lte,5g,10,50kb,7,Control,Cellular,9,2660,2635,99.0602,18.3993,120.0000,0.369603,0
+lte_5g_sta10_50kb_seed8,lte,5g,10,50kb,8,Control,WiFi mesh,10,6910,5796,83.8784,9.3409,229.0000,0.812986,5
+lte_5g_sta10_50kb_seed8,lte,5g,10,50kb,8,Sensor,WiFi mesh,10,34455,34020,98.7375,12.3466,128.0000,6.582544,4
+lte_5g_sta10_50kb_seed8,lte,5g,10,50kb,8,Video,WiFi mesh,10,41982,41515,98.8876,7.3703,78.0000,8.033576,4
+lte_5g_sta10_50kb_seed8,lte,5g,10,50kb,8,Control,Cellular,10,2710,2659,98.1181,16.2759,28.0000,0.372969,0
+lte_5g_sta10_50kb_seed9,lte,5g,10,50kb,9,Control,WiFi mesh,10,5800,4259,73.4310,20.8167,301.0000,0.597396,4
+lte_5g_sta10_50kb_seed9,lte,5g,10,50kb,9,Sensor,WiFi mesh,10,27239,26589,97.6137,24.8043,195.0000,5.143902,1
+lte_5g_sta10_50kb_seed9,lte,5g,10,50kb,9,Video,WiFi mesh,10,33592,33023,98.3061,19.8763,153.0000,6.389525,1
+lte_5g_sta10_50kb_seed9,lte,5g,10,50kb,9,Control,Cellular,10,3820,3783,99.0314,29.0967,330.0000,0.530629,0
+lte_5g_sta15_10kb_seed7,lte,5g,15,10kb,7,Control,WiFi mesh,15,8680,6729,77.5230,2.5432,21.0000,0.943854,7
+lte_5g_sta15_10kb_seed7,lte,5g,15,10kb,7,Sensor,WiFi mesh,15,20671,20207,97.7553,9.6772,67.0000,3.906483,5
+lte_5g_sta15_10kb_seed7,lte,5g,15,10kb,7,Video,WiFi mesh,15,25843,25291,97.8640,8.1729,47.0000,4.890746,6
+lte_5g_sta15_10kb_seed7,lte,5g,15,10kb,7,Control,Cellular,15,5450,5400,99.0826,18.9677,64.0000,0.757440,0
+lte_5g_sta15_10kb_seed8,lte,5g,15,10kb,8,Control,WiFi mesh,15,11150,9821,88.0807,8.5809,243.0000,1.377559,5
+lte_5g_sta15_10kb_seed8,lte,5g,15,10kb,8,Sensor,WiFi mesh,15,21391,21169,98.9622,11.7437,175.0000,4.092726,4
+lte_5g_sta15_10kb_seed8,lte,5g,15,10kb,8,Video,WiFi mesh,15,27060,26713,98.7177,8.4598,90.0000,5.166045,5
+lte_5g_sta15_10kb_seed8,lte,5g,15,10kb,8,Control,Cellular,14,2980,2547,85.4698,25.3876,108.0000,0.357259,1
+lte_5g_sta15_10kb_seed9,lte,5g,15,10kb,9,Control,WiFi mesh,15,8650,5551,64.1734,6.1314,78.0000,0.778620,7
+lte_5g_sta15_10kb_seed9,lte,5g,15,10kb,9,Sensor,WiFi mesh,15,13648,13416,98.3001,11.5079,115.0000,2.591746,7
+lte_5g_sta15_10kb_seed9,lte,5g,15,10kb,9,Video,WiFi mesh,15,16945,16695,98.5246,9.4654,79.0000,3.226560,7
+lte_5g_sta15_10kb_seed9,lte,5g,15,10kb,9,Control,Cellular,15,5480,4887,89.1788,58.7590,1092.0000,0.685483,2
+lte_5g_sta15_1mb_seed7,lte,5g,15,1mb,7,Control,WiFi mesh,15,8340,6026,72.2542,52.3514,482.0000,0.845247,7
+lte_5g_sta15_1mb_seed7,lte,5g,15,1mb,7,Sensor,WiFi mesh,15,86954,84448,97.1180,32.8907,280.0000,16.343169,3
+lte_5g_sta15_1mb_seed7,lte,5g,15,1mb,7,Video,WiFi mesh,15,101581,99086,97.5438,27.0639,246.0000,19.177272,5
+lte_5g_sta15_1mb_seed7,lte,5g,15,1mb,7,Control,Cellular,15,5790,5656,97.6857,23.3385,161.0000,0.793348,0
+lte_5g_sta15_1mb_seed8,lte,5g,15,1mb,8,Control,WiFi mesh,15,9380,4441,47.3454,43.8381,423.0000,0.622924,7
+lte_5g_sta15_1mb_seed8,lte,5g,15,1mb,8,Sensor,WiFi mesh,15,63131,61257,97.0316,34.0791,232.0000,11.854136,6
+lte_5g_sta15_1mb_seed8,lte,5g,15,1mb,8,Video,WiFi mesh,15,83443,81583,97.7709,31.7016,221.0000,15.789622,7
+lte_5g_sta15_1mb_seed8,lte,5g,15,1mb,8,Control,Cellular,13,4750,4263,89.7474,36.8470,123.0000,0.597957,1
+lte_5g_sta15_1mb_seed9,lte,5g,15,1mb,9,Control,WiFi mesh,15,9410,4266,45.3348,30.9252,388.0000,0.598378,8
+lte_5g_sta15_1mb_seed9,lte,5g,15,1mb,9,Sensor,WiFi mesh,15,63524,61533,96.8658,44.1174,280.0000,11.907570,7
+lte_5g_sta15_1mb_seed9,lte,5g,15,1mb,9,Video,WiFi mesh,15,64446,62939,97.6616,29.9699,243.0000,12.179771,7
+lte_5g_sta15_1mb_seed9,lte,5g,15,1mb,9,Control,Cellular,14,4720,4432,93.8983,39.5137,456.0000,0.621662,1
+lte_5g_sta15_2mb_seed7,lte,5g,15,2mb,7,Control,WiFi mesh,15,10030,3223,32.1336,35.7620,363.0000,0.452079,9
+lte_5g_sta15_2mb_seed7,lte,5g,15,2mb,7,Sensor,WiFi mesh,15,102118,100316,98.2354,22.2879,232.0000,19.415586,9
+lte_5g_sta15_2mb_seed7,lte,5g,15,2mb,7,Video,WiFi mesh,15,113587,111587,98.2392,19.0740,219.0000,21.597652,9
+lte_5g_sta15_2mb_seed7,lte,5g,15,2mb,7,Control,Cellular,15,4100,4003,97.6341,25.7324,221.0000,0.561487,0
+lte_5g_sta15_2mb_seed8,lte,5g,15,2mb,8,Control,WiFi mesh,15,10220,3036,29.7065,50.0874,495.0000,0.425850,11
+lte_5g_sta15_2mb_seed8,lte,5g,15,2mb,8,Sensor,WiFi mesh,15,59902,58004,96.8315,16.5429,237.0000,11.223982,12
+lte_5g_sta15_2mb_seed8,lte,5g,15,2mb,8,Video,WiFi mesh,15,76314,74761,97.9650,9.9703,199.0000,14.468138,11
+lte_5g_sta15_2mb_seed8,lte,5g,15,2mb,8,Control,Cellular,15,3910,3493,89.3350,48.2859,500.0000,0.489951,1
+lte_5g_sta15_2mb_seed9,lte,5g,15,2mb,9,Control,WiFi mesh,15,9960,3079,30.9137,61.8598,385.0000,0.431881,10
+lte_5g_sta15_2mb_seed9,lte,5g,15,2mb,9,Sensor,WiFi mesh,15,36914,34237,92.7480,60.0253,384.0000,6.622691,10
+lte_5g_sta15_2mb_seed9,lte,5g,15,2mb,9,Video,WiFi mesh,15,43515,40895,93.9791,52.9004,360.0000,7.911680,10
+lte_5g_sta15_2mb_seed9,lte,5g,15,2mb,9,Control,Cellular,15,4170,4006,96.0671,52.5168,584.0000,0.561908,0
+lte_5g_sta15_50kb_seed7,lte,5g,15,50kb,7,Control,WiFi mesh,15,7820,5563,71.1381,41.2703,230.0000,0.780303,7
+lte_5g_sta15_50kb_seed7,lte,5g,15,50kb,7,Sensor,WiFi mesh,15,43558,42508,97.5894,38.2606,189.0000,8.223957,3
+lte_5g_sta15_50kb_seed7,lte,5g,15,50kb,7,Video,WiFi mesh,15,53765,52613,97.8573,32.3008,160.0000,10.180285,3
+lte_5g_sta15_50kb_seed7,lte,5g,15,50kb,7,Control,Cellular,15,6310,6200,98.2567,25.7551,235.0000,0.869653,0
+lte_5g_sta15_50kb_seed8,lte,5g,15,50kb,8,Control,WiFi mesh,15,7990,5489,68.6984,34.1365,355.0000,0.769924,7
+lte_5g_sta15_50kb_seed8,lte,5g,15,50kb,8,Sensor,WiFi mesh,15,41770,40301,96.4831,34.2097,324.0000,7.796682,1
+lte_5g_sta15_50kb_seed8,lte,5g,15,50kb,8,Video,WiFi mesh,15,47596,46430,97.5502,23.3110,250.0000,8.983256,1
+lte_5g_sta15_50kb_seed8,lte,5g,15,50kb,8,Control,Cellular,15,6140,5422,88.3062,41.6402,729.0000,0.760526,1
+lte_5g_sta15_50kb_seed9,lte,5g,15,50kb,9,Control,WiFi mesh,15,8180,4801,58.6919,25.5272,517.0000,0.673420,7
+lte_5g_sta15_50kb_seed9,lte,5g,15,50kb,9,Sensor,WiFi mesh,15,30924,30140,97.4648,24.3633,195.0000,5.829512,6
+lte_5g_sta15_50kb_seed9,lte,5g,15,50kb,9,Video,WiFi mesh,15,38277,37533,98.0563,19.8258,142.0000,7.260797,6
+lte_5g_sta15_50kb_seed9,lte,5g,15,50kb,9,Control,Cellular,15,5950,5282,88.7731,62.9582,693.0000,0.740889,1
+lte_5g_sta20_10kb_seed7,lte,5g,20,10kb,7,Control,WiFi mesh,20,11350,6994,61.6211,6.2994,75.0000,0.981025,12
+lte_5g_sta20_10kb_seed7,lte,5g,20,10kb,7,Sensor,WiFi mesh,20,20546,19934,97.0213,15.6907,129.0000,3.851766,6
+lte_5g_sta20_10kb_seed7,lte,5g,20,10kb,7,Video,WiFi mesh,20,25370,24727,97.4655,12.7464,72.0000,4.779878,6
+lte_5g_sta20_10kb_seed7,lte,5g,20,10kb,7,Control,Cellular,20,7090,6409,90.3949,76.3877,643.0000,0.898969,0
+lte_5g_sta20_10kb_seed8,lte,5g,20,10kb,8,Control,WiFi mesh,20,11990,8420,70.2252,6.1179,92.0000,1.181045,9
+lte_5g_sta20_10kb_seed8,lte,5g,20,10kb,8,Sensor,WiFi mesh,20,21672,21319,98.3712,13.3658,129.0000,4.119902,6
+lte_5g_sta20_10kb_seed8,lte,5g,20,10kb,8,Video,WiFi mesh,20,26863,26485,98.5929,10.2088,77.0000,5.120040,6
+lte_5g_sta20_10kb_seed8,lte,5g,20,10kb,8,Control,Cellular,20,6450,6231,96.6047,35.5662,249.0000,0.874002,0
+lte_5g_sta20_10kb_seed9,lte,5g,20,10kb,9,Control,WiFi mesh,20,12460,7310,58.6677,9.5310,318.0000,1.025349,11
+lte_5g_sta20_10kb_seed9,lte,5g,20,10kb,9,Sensor,WiFi mesh,20,18018,17603,97.6967,12.8534,100.0000,3.401230,8
+lte_5g_sta20_10kb_seed9,lte,5g,20,10kb,9,Video,WiFi mesh,20,22604,22176,98.1065,9.6957,59.0000,4.286563,8
+lte_5g_sta20_10kb_seed9,lte,5g,20,10kb,9,Control,Cellular,18,5980,5381,89.9833,39.6546,498.0000,0.754775,3
+lte_5g_sta20_1mb_seed7,lte,5g,20,1mb,7,Control,WiFi mesh,20,11930,4912,41.1735,22.8109,312.0000,0.688990,11
+lte_5g_sta20_1mb_seed7,lte,5g,20,1mb,7,Sensor,WiFi mesh,20,74661,73065,97.8623,17.1737,156.0000,14.138301,12
+lte_5g_sta20_1mb_seed7,lte,5g,20,1mb,7,Video,WiFi mesh,20,95367,93638,98.1870,12.6748,97.0000,18.121606,12
+lte_5g_sta20_1mb_seed7,lte,5g,20,1mb,7,Control,Cellular,19,6510,5762,88.5100,74.2455,1307.0000,0.808217,1
+lte_5g_sta20_1mb_seed8,lte,5g,20,1mb,8,Control,WiFi mesh,20,11190,4879,43.6014,31.8930,382.0000,0.684361,9
+lte_5g_sta20_1mb_seed8,lte,5g,20,1mb,8,Sensor,WiFi mesh,20,68075,65766,96.6082,18.6977,138.0000,12.724842,13
+lte_5g_sta20_1mb_seed8,lte,5g,20,1mb,8,Video,WiFi mesh,20,75422,73359,97.2647,18.1261,121.0000,14.194846,14
+lte_5g_sta20_1mb_seed8,lte,5g,20,1mb,8,Control,Cellular,20,7250,6745,93.0345,67.3992,732.0000,0.946099,0
+lte_5g_sta20_1mb_seed9,lte,5g,20,1mb,9,Control,WiFi mesh,20,11860,5842,49.2580,45.6859,458.0000,0.819438,9
+lte_5g_sta20_1mb_seed9,lte,5g,20,1mb,9,Sensor,WiFi mesh,20,78900,76706,97.2193,40.6779,337.0000,14.843571,8
+lte_5g_sta20_1mb_seed9,lte,5g,20,1mb,9,Video,WiFi mesh,20,89894,88161,98.0722,27.7390,308.0000,17.061632,8
+lte_5g_sta20_1mb_seed9,lte,5g,20,1mb,9,Control,Cellular,18,6580,6074,92.3100,37.8824,571.0000,0.851980,1
+lte_5g_sta20_2mb_seed7,lte,5g,20,2mb,7,Control,WiFi mesh,20,13240,5008,37.8248,45.0163,313.0000,0.702455,13
+lte_5g_sta20_2mb_seed7,lte,5g,20,2mb,7,Sensor,WiFi mesh,20,114444,111833,97.7185,33.6385,251.0000,21.643600,12
+lte_5g_sta20_2mb_seed7,lte,5g,20,2mb,7,Video,WiFi mesh,20,169633,166902,98.3901,21.9920,222.0000,32.305331,13
+lte_5g_sta20_2mb_seed7,lte,5g,20,2mb,7,Control,Cellular,18,5200,4704,90.4615,56.3772,913.0000,0.659814,0
+lte_5g_sta20_2mb_seed8,lte,5g,20,2mb,8,Control,WiFi mesh,20,13340,3180,23.8381,47.6512,317.0000,0.446048,15
+lte_5g_sta20_2mb_seed8,lte,5g,20,2mb,8,Sensor,WiFi mesh,20,77009,74858,97.2068,45.0304,274.0000,14.485612,17
+lte_5g_sta20_2mb_seed8,lte,5g,20,2mb,8,Video,WiFi mesh,20,73115,71216,97.4027,33.6852,255.0000,13.780334,16
+lte_5g_sta20_2mb_seed8,lte,5g,20,2mb,8,Control,Cellular,19,5100,4827,94.6471,23.7140,262.0000,0.677067,0
+lte_5g_sta20_2mb_seed9,lte,5g,20,2mb,9,Control,WiFi mesh,20,12680,5120,40.3785,56.7447,490.0000,0.718165,9
+lte_5g_sta20_2mb_seed9,lte,5g,20,2mb,9,Sensor,WiFi mesh,20,100195,97355,97.1655,26.8834,275.0000,18.841031,10
+lte_5g_sta20_2mb_seed9,lte,5g,20,2mb,9,Video,WiFi mesh,20,143899,141465,98.3085,27.9013,221.0000,27.380727,10
+lte_5g_sta20_2mb_seed9,lte,5g,20,2mb,9,Control,Cellular,18,5760,5414,93.9931,28.7650,298.0000,0.759404,0
+lte_5g_sta20_50kb_seed7,lte,5g,20,50kb,7,Control,WiFi mesh,20,10660,6604,61.9512,11.1603,130.0000,0.926321,14
+lte_5g_sta20_50kb_seed7,lte,5g,20,50kb,7,Sensor,WiFi mesh,20,46101,45102,97.8330,21.4176,165.0000,8.724291,5
+lte_5g_sta20_50kb_seed7,lte,5g,20,50kb,7,Video,WiFi mesh,20,59336,58007,97.7602,16.0315,124.0000,11.222699,6
+lte_5g_sta20_50kb_seed7,lte,5g,20,50kb,7,Control,Cellular,20,7780,6873,88.3419,66.3404,1132.0000,0.964053,1
+lte_5g_sta20_50kb_seed8,lte,5g,20,50kb,8,Control,WiFi mesh,20,9890,5341,54.0040,52.5262,447.0000,0.749164,10
+lte_5g_sta20_50kb_seed8,lte,5g,20,50kb,8,Sensor,WiFi mesh,20,38087,36772,96.5474,48.3338,341.0000,7.111790,2
+lte_5g_sta20_50kb_seed8,lte,5g,20,50kb,8,Video,WiFi mesh,20,47809,46351,96.9504,37.8373,293.0000,8.966098,3
+lte_5g_sta20_50kb_seed8,lte,5g,20,50kb,8,Control,Cellular,20,8550,8015,93.7427,72.6392,726.0000,1.124237,1
+lte_5g_sta20_50kb_seed9,lte,5g,20,50kb,9,Control,WiFi mesh,20,11110,5442,48.9829,42.1738,423.0000,0.763331,12
+lte_5g_sta20_50kb_seed9,lte,5g,20,50kb,9,Sensor,WiFi mesh,20,39538,38455,97.2609,30.4334,248.0000,7.438178,5
+lte_5g_sta20_50kb_seed9,lte,5g,20,50kb,9,Video,WiFi mesh,20,48277,47187,97.7422,25.9633,193.0000,9.128693,7
+lte_5g_sta20_50kb_seed9,lte,5g,20,50kb,9,Control,Cellular,18,7330,6582,89.7954,48.8234,565.0000,0.923235,3
+lte_5g_sta5_10kb_seed7,lte,5g,5,10kb,7,Control,WiFi mesh,5,4180,3968,94.9282,2.8974,12.0000,0.556578,2
+lte_5g_sta5_10kb_seed7,lte,5g,5,10kb,7,Sensor,WiFi mesh,5,8155,8080,99.0803,5.4592,99.0000,1.562424,0
+lte_5g_sta5_10kb_seed7,lte,5g,5,10kb,7,Video,WiFi mesh,5,10160,10077,99.1831,4.2272,67.0000,1.949043,0
+lte_5g_sta5_10kb_seed7,lte,5g,5,10kb,7,Control,Cellular,5,730,715,97.9452,58.5450,409.0000,0.100291,0
+lte_5g_sta5_10kb_seed8,lte,5g,5,10kb,8,Control,WiFi mesh,5,2950,1525,51.6949,0.9570,9.0000,0.213907,4
+lte_5g_sta5_10kb_seed8,lte,5g,5,10kb,8,Sensor,WiFi mesh,5,4356,4216,96.7860,10.8377,125.0000,0.814354,1
+lte_5g_sta5_10kb_seed8,lte,5g,5,10kb,8,Video,WiFi mesh,5,5288,5148,97.3525,7.1624,74.0000,0.994789,1
+lte_5g_sta5_10kb_seed8,lte,5g,5,10kb,8,Control,Cellular,5,1960,1959,99.9490,20.1470,133.0000,0.274782,0
+lte_5g_sta5_10kb_seed9,lte,5g,5,10kb,9,Control,WiFi mesh,5,4160,3944,94.8077,2.1465,15.0000,0.553212,0
+lte_5g_sta5_10kb_seed9,lte,5g,5,10kb,9,Sensor,WiFi mesh,5,7738,7676,99.1988,3.2952,58.0000,1.484210,1
+lte_5g_sta5_10kb_seed9,lte,5g,5,10kb,9,Video,WiFi mesh,5,9637,9572,99.3255,4.1198,76.0000,1.851275,1
+lte_5g_sta5_10kb_seed9,lte,5g,5,10kb,9,Control,Cellular,4,750,749,99.8667,19.7008,89.0000,0.105060,0
+lte_5g_sta5_1mb_seed7,lte,5g,5,1mb,7,Control,WiFi mesh,5,3780,1591,42.0899,37.0911,366.0000,0.223164,1
+lte_5g_sta5_1mb_seed7,lte,5g,5,1mb,7,Sensor,WiFi mesh,5,23697,23428,98.8648,22.9171,125.0000,4.534170,3
+lte_5g_sta5_1mb_seed7,lte,5g,5,1mb,7,Video,WiFi mesh,5,39496,39065,98.9088,27.5118,124.0000,7.561307,2
+lte_5g_sta5_1mb_seed7,lte,5g,5,1mb,7,Control,Cellular,3,1130,907,80.2655,19.3662,133.0000,0.127222,0
+lte_5g_sta5_1mb_seed8,lte,5g,5,1mb,8,Control,WiFi mesh,5,2940,1950,66.3265,63.0037,388.0000,0.273520,1
+lte_5g_sta5_1mb_seed8,lte,5g,5,1mb,8,Sensor,WiFi mesh,5,32234,31387,97.3723,52.2560,292.0000,6.074659,1
+lte_5g_sta5_1mb_seed8,lte,5g,5,1mb,8,Video,WiFi mesh,5,44134,43250,97.9970,44.2417,274.0000,8.371336,2
+lte_5g_sta5_1mb_seed8,lte,5g,5,1mb,8,Control,Cellular,5,1970,1935,98.2234,20.5410,151.0000,0.271416,0
+lte_5g_sta5_1mb_seed9,lte,5g,5,1mb,9,Control,WiFi mesh,5,3520,2326,66.0795,67.7365,672.0000,0.326260,1
+lte_5g_sta5_1mb_seed9,lte,5g,5,1mb,9,Sensor,WiFi mesh,5,38801,37868,97.5954,40.2301,240.0000,7.329381,1
+lte_5g_sta5_1mb_seed9,lte,5g,5,1mb,9,Video,WiFi mesh,5,46708,45750,97.9490,43.4986,272.0000,8.855336,1
+lte_5g_sta5_1mb_seed9,lte,5g,5,1mb,9,Control,Cellular,5,1390,1353,97.3381,23.8457,156.0000,0.189781,0
+lte_5g_sta5_2mb_seed7,lte,5g,5,2mb,7,Control,WiFi mesh,5,3330,2518,75.6156,43.5802,458.0000,0.353191,3
+lte_5g_sta5_2mb_seed7,lte,5g,5,2mb,7,Sensor,WiFi mesh,5,68918,68162,98.9030,17.5213,196.0000,13.194299,0
+lte_5g_sta5_2mb_seed7,lte,5g,5,2mb,7,Video,WiFi mesh,5,73928,73331,99.1925,16.9250,214.0000,14.195018,1
+lte_5g_sta5_2mb_seed7,lte,5g,5,2mb,7,Control,Cellular,5,1580,1408,89.1139,35.1042,250.0000,0.197495,0
+lte_5g_sta5_2mb_seed8,lte,5g,5,2mb,8,Control,WiFi mesh,5,3240,1094,33.7654,89.1059,726.0000,0.153452,5
+lte_5g_sta5_2mb_seed8,lte,5g,5,2mb,8,Sensor,WiFi mesh,5,27785,26749,96.2714,44.3968,289.0000,5.176742,4
+lte_5g_sta5_2mb_seed8,lte,5g,5,2mb,8,Video,WiFi mesh,5,20052,19270,96.1001,33.0322,255.0000,3.728808,4
+lte_5g_sta5_2mb_seed8,lte,5g,5,2mb,8,Control,Cellular,5,1670,1634,97.8443,35.7946,326.0000,0.229196,0
+lte_5g_sta5_2mb_seed9,lte,5g,5,2mb,9,Control,WiFi mesh,5,3040,2198,72.3026,63.6727,486.0000,0.308306,1
+lte_5g_sta5_2mb_seed9,lte,5g,5,2mb,9,Sensor,WiFi mesh,5,59389,57695,97.1476,61.0608,458.0000,11.167888,1
+lte_5g_sta5_2mb_seed9,lte,5g,5,2mb,9,Video,WiFi mesh,5,48368,47084,97.3454,37.7650,254.0000,9.113598,1
+lte_5g_sta5_2mb_seed9,lte,5g,5,2mb,9,Control,Cellular,5,1870,1803,96.4171,52.5856,391.0000,0.252901,0
+lte_5g_sta5_50kb_seed7,lte,5g,5,50kb,7,Control,WiFi mesh,5,4330,4127,95.3118,4.9965,24.0000,0.578881,2
+lte_5g_sta5_50kb_seed7,lte,5g,5,50kb,7,Sensor,WiFi mesh,5,20170,20070,99.5042,5.7994,45.0000,3.883688,0
+lte_5g_sta5_50kb_seed7,lte,5g,5,50kb,7,Video,WiFi mesh,5,24910,24789,99.5143,4.3671,27.0000,4.797286,0
+lte_5g_sta5_50kb_seed7,lte,5g,5,50kb,7,Control,Cellular,4,580,455,78.4483,21.7752,170.0000,0.063821,0
+lte_5g_sta5_50kb_seed8,lte,5g,5,50kb,8,Control,WiFi mesh,5,2980,1713,57.4832,22.2450,504.0000,0.240277,5
+lte_5g_sta5_50kb_seed8,lte,5g,5,50kb,8,Sensor,WiFi mesh,5,12538,12190,97.2244,14.9767,133.0000,2.358120,2
+lte_5g_sta5_50kb_seed8,lte,5g,5,50kb,8,Video,WiFi mesh,5,15594,15272,97.9351,14.5697,145.0000,2.954795,2
+lte_5g_sta5_50kb_seed8,lte,5g,5,50kb,8,Control,Cellular,5,1930,1921,99.5337,22.6747,190.0000,0.269452,0
+lte_5g_sta5_50kb_seed9,lte,5g,5,50kb,9,Control,WiFi mesh,5,3700,3587,96.9459,10.8598,239.0000,0.503137,0
+lte_5g_sta5_50kb_seed9,lte,5g,5,50kb,9,Sensor,WiFi mesh,5,21731,21455,98.7299,9.1648,73.0000,4.151824,0
+lte_5g_sta5_50kb_seed9,lte,5g,5,50kb,9,Video,WiFi mesh,5,26854,26566,98.9275,8.5176,60.0000,5.141314,0
+lte_5g_sta5_50kb_seed9,lte,5g,5,50kb,9,Control,Cellular,5,1210,1195,98.7603,17.4926,76.0000,0.167619,0
+nr_2g_sta10_10kb_seed7,nr,2g,10,10kb,7,Control,WiFi mesh,10,6010,4524,75.2745,3.0544,21.0000,0.634566,2
+nr_2g_sta10_10kb_seed7,nr,2g,10,10kb,7,Sensor,WiFi mesh,10,10385,10182,98.0453,6.9956,67.0000,1.967507,4
+nr_2g_sta10_10kb_seed7,nr,2g,10,10kb,7,Video,WiFi mesh,10,13002,12804,98.4772,4.8240,21.0000,2.475126,3
+nr_2g_sta10_10kb_seed7,nr,2g,10,10kb,7,Control,Cellular,10,3610,3144,87.0914,11.4842,46.0000,0.440998,4
+nr_2g_sta10_10kb_seed8,nr,2g,10,10kb,8,Control,WiFi mesh,10,6980,5498,78.7679,2.6117,17.0000,0.771186,2
+nr_2g_sta10_10kb_seed8,nr,2g,10,10kb,8,Sensor,WiFi mesh,10,11600,11467,98.8534,5.0009,36.0000,2.216283,2
+nr_2g_sta10_10kb_seed8,nr,2g,10,10kb,8,Video,WiFi mesh,10,14460,14281,98.7621,3.5660,23.0000,2.761074,2
+nr_2g_sta10_10kb_seed8,nr,2g,10,10kb,8,Control,Cellular,9,2640,2348,88.9394,13.4699,101.0000,0.329346,2
+nr_2g_sta10_10kb_seed9,nr,2g,10,10kb,9,Control,WiFi mesh,10,6930,5444,78.5570,5.6724,20.0000,0.763612,3
+nr_2g_sta10_10kb_seed9,nr,2g,10,10kb,9,Sensor,WiFi mesh,10,12091,11847,97.9820,6.6013,49.0000,2.289851,2
+nr_2g_sta10_10kb_seed9,nr,2g,10,10kb,9,Video,WiFi mesh,10,14956,14694,98.2482,5.0642,21.0000,2.841030,3
+nr_2g_sta10_10kb_seed9,nr,2g,10,10kb,9,Control,Cellular,10,2690,1989,73.9405,11.4384,46.0000,0.278990,4
+nr_2g_sta10_1mb_seed7,nr,2g,10,1mb,7,Control,WiFi mesh,10,5040,3652,72.4603,44.2613,579.0000,0.512254,2
+nr_2g_sta10_1mb_seed7,nr,2g,10,1mb,7,Sensor,WiFi mesh,10,74651,72126,96.6176,34.5076,278.0000,13.959866,3
+nr_2g_sta10_1mb_seed7,nr,2g,10,1mb,7,Video,WiFi mesh,10,92254,90241,97.8180,20.9502,144.0000,17.466930,3
+nr_2g_sta10_1mb_seed7,nr,2g,10,1mb,7,Control,Cellular,10,4580,3618,78.9956,12.1824,72.0000,0.507485,4
+nr_2g_sta10_1mb_seed8,nr,2g,10,1mb,8,Control,WiFi mesh,10,5620,2834,50.4270,50.5062,712.0000,0.397516,4
+nr_2g_sta10_1mb_seed8,nr,2g,10,1mb,8,Sensor,WiFi mesh,10,33461,32182,96.1776,28.4681,155.0000,6.226707,6
+nr_2g_sta10_1mb_seed8,nr,2g,10,1mb,8,Video,WiFi mesh,10,43301,42225,97.5151,30.1492,132.0000,8.170846,5
+nr_2g_sta10_1mb_seed8,nr,2g,10,1mb,8,Control,Cellular,10,4000,3576,89.4000,11.4720,36.0000,0.501594,1
+nr_2g_sta10_1mb_seed9,nr,2g,10,1mb,9,Control,WiFi mesh,10,5940,3654,61.5152,55.2483,342.0000,0.512534,3
+nr_2g_sta10_1mb_seed9,nr,2g,10,1mb,9,Sensor,WiFi mesh,10,50614,49317,97.4375,47.1504,239.0000,9.544043,5
+nr_2g_sta10_1mb_seed9,nr,2g,10,1mb,9,Video,WiFi mesh,10,60402,59083,97.8163,31.5771,160.0000,11.434555,4
+nr_2g_sta10_1mb_seed9,nr,2g,10,1mb,9,Control,Cellular,10,3680,2296,62.3913,11.5241,71.0000,0.322052,5
+nr_2g_sta10_2mb_seed7,nr,2g,10,2mb,7,Control,WiFi mesh,10,6520,3171,48.6350,29.4339,248.0000,0.444786,4
+nr_2g_sta10_2mb_seed7,nr,2g,10,2mb,7,Sensor,WiFi mesh,10,58844,57124,97.0770,39.4768,245.0000,11.055665,4
+nr_2g_sta10_2mb_seed7,nr,2g,10,2mb,7,Video,WiFi mesh,10,79985,78337,97.9396,24.8604,134.0000,15.162315,4
+nr_2g_sta10_2mb_seed7,nr,2g,10,2mb,7,Control,Cellular,10,3100,2042,65.8710,11.5215,45.0000,0.286425,3
+nr_2g_sta10_2mb_seed8,nr,2g,10,2mb,8,Control,WiFi mesh,10,7310,2538,34.7196,33.3934,322.0000,0.355997,6
+nr_2g_sta10_2mb_seed8,nr,2g,10,2mb,8,Sensor,WiFi mesh,10,18582,17640,94.9306,41.6424,291.0000,3.411376,6
+nr_2g_sta10_2mb_seed8,nr,2g,10,2mb,8,Video,WiFi mesh,10,38703,37515,96.9305,23.8915,187.0000,7.259176,6
+nr_2g_sta10_2mb_seed8,nr,2g,10,2mb,8,Control,Cellular,10,2310,2205,95.4545,13.0596,58.0000,0.309288,0
+nr_2g_sta10_2mb_seed9,nr,2g,10,2mb,9,Control,WiFi mesh,10,6330,3392,53.5861,107.0634,555.0000,0.475785,5
+nr_2g_sta10_2mb_seed9,nr,2g,10,2mb,9,Sensor,WiFi mesh,10,35239,32712,92.8290,72.8737,401.0000,6.329315,6
+nr_2g_sta10_2mb_seed9,nr,2g,10,2mb,9,Video,WiFi mesh,10,47928,45671,95.2909,64.1131,340.0000,8.838178,4
+nr_2g_sta10_2mb_seed9,nr,2g,10,2mb,9,Control,Cellular,10,3290,2146,65.2280,13.6210,104.0000,0.301012,4
+nr_2g_sta10_50kb_seed7,nr,2g,10,50kb,7,Control,WiFi mesh,10,5370,3509,65.3445,4.7352,23.0000,0.492196,2
+nr_2g_sta10_50kb_seed7,nr,2g,10,50kb,7,Sensor,WiFi mesh,10,20155,19737,97.9261,8.0246,76.0000,3.817355,5
+nr_2g_sta10_50kb_seed7,nr,2g,10,50kb,7,Video,WiFi mesh,10,24184,23691,97.9615,6.0416,23.0000,4.582850,5
+nr_2g_sta10_50kb_seed7,nr,2g,10,50kb,7,Control,Cellular,10,4250,3591,84.4941,12.9795,101.0000,0.503698,3
+nr_2g_sta10_50kb_seed8,nr,2g,10,50kb,8,Control,WiFi mesh,10,6190,4377,70.7108,5.9298,42.0000,0.613947,4
+nr_2g_sta10_50kb_seed8,nr,2g,10,50kb,8,Sensor,WiFi mesh,10,24494,24176,98.7017,11.7714,139.0000,4.676559,3
+nr_2g_sta10_50kb_seed8,nr,2g,10,50kb,8,Video,WiFi mesh,10,31485,31057,98.6406,5.6025,29.0000,6.008907,3
+nr_2g_sta10_50kb_seed8,nr,2g,10,50kb,8,Control,Cellular,9,3430,2743,79.9708,12.5027,81.0000,0.384751,2
+nr_2g_sta10_50kb_seed9,nr,2g,10,50kb,9,Control,WiFi mesh,10,6500,4868,74.8923,16.2465,277.0000,0.682818,3
+nr_2g_sta10_50kb_seed9,nr,2g,10,50kb,9,Sensor,WiFi mesh,10,24371,24019,98.5557,16.2995,179.0000,4.646350,2
+nr_2g_sta10_50kb_seed9,nr,2g,10,50kb,9,Video,WiFi mesh,10,30424,29947,98.4322,12.6767,107.0000,5.794011,1
+nr_2g_sta10_50kb_seed9,nr,2g,10,50kb,9,Control,Cellular,9,3120,2413,77.3397,11.8199,80.0000,0.338463,4
+nr_2g_sta15_10kb_seed7,nr,2g,15,10kb,7,Control,WiFi mesh,15,7410,3730,50.3374,18.4075,457.0000,0.523195,6
+nr_2g_sta15_10kb_seed7,nr,2g,15,10kb,7,Sensor,WiFi mesh,15,12534,12107,96.5933,13.0361,128.0000,2.338323,6
+nr_2g_sta15_10kb_seed7,nr,2g,15,10kb,7,Video,WiFi mesh,15,15331,14847,96.8430,9.1432,45.0000,2.868974,6
+nr_2g_sta15_10kb_seed7,nr,2g,15,10kb,7,Control,Cellular,15,6720,5359,79.7470,11.8568,57.0000,0.751689,4
+nr_2g_sta15_10kb_seed8,nr,2g,15,10kb,8,Control,WiFi mesh,15,8500,5192,61.0824,16.9707,645.0000,0.728265,10
+nr_2g_sta15_10kb_seed8,nr,2g,15,10kb,8,Sensor,WiFi mesh,15,14770,14547,98.4902,11.4557,145.0000,2.810707,6
+nr_2g_sta15_10kb_seed8,nr,2g,15,10kb,8,Video,WiFi mesh,15,18593,18195,97.8594,7.3720,30.0000,3.516960,7
+nr_2g_sta15_10kb_seed8,nr,2g,15,10kb,8,Control,Cellular,15,5630,4567,81.1190,11.4458,46.0000,0.640598,4
+nr_2g_sta15_10kb_seed9,nr,2g,15,10kb,9,Control,WiFi mesh,15,9030,6009,66.5449,3.6684,25.0000,0.842862,5
+nr_2g_sta15_10kb_seed9,nr,2g,15,10kb,9,Sensor,WiFi mesh,15,16998,16664,98.0351,9.7248,110.0000,3.220558,5
+nr_2g_sta15_10kb_seed9,nr,2g,15,10kb,9,Video,WiFi mesh,15,20569,20134,97.8852,6.3463,31.0000,3.892350,4
+nr_2g_sta15_10kb_seed9,nr,2g,15,10kb,9,Control,Cellular,15,5100,3229,63.3137,13.5775,92.0000,0.452921,9
+nr_2g_sta15_1mb_seed7,nr,2g,15,1mb,7,Control,WiFi mesh,15,9240,4097,44.3398,65.3123,392.0000,0.574673,8
+nr_2g_sta15_1mb_seed7,nr,2g,15,1mb,7,Sensor,WiFi mesh,15,39251,38146,97.1848,57.8124,322.0000,7.379102,9
+nr_2g_sta15_1mb_seed7,nr,2g,15,1mb,7,Video,WiFi mesh,15,49577,48132,97.0853,53.0941,294.0000,9.312578,9
+nr_2g_sta15_1mb_seed7,nr,2g,15,1mb,7,Control,Cellular,14,4890,4352,88.9980,12.5174,54.0000,0.610441,2
+nr_2g_sta15_1mb_seed8,nr,2g,15,1mb,8,Control,WiFi mesh,15,8510,3645,42.8320,47.2063,721.0000,0.511272,8
+nr_2g_sta15_1mb_seed8,nr,2g,15,1mb,8,Sensor,WiFi mesh,15,67672,65732,97.1332,24.5849,195.0000,12.720310,8
+nr_2g_sta15_1mb_seed8,nr,2g,15,1mb,8,Video,WiFi mesh,15,64228,62330,97.0449,25.3388,179.0000,12.061496,9
+nr_2g_sta15_1mb_seed8,nr,2g,15,1mb,8,Control,Cellular,15,5620,3951,70.3025,11.3979,41.0000,0.554194,5
+nr_2g_sta15_1mb_seed9,nr,2g,15,1mb,9,Control,WiFi mesh,15,8630,4544,52.6535,52.0190,502.0000,0.637372,6
+nr_2g_sta15_1mb_seed9,nr,2g,15,1mb,9,Sensor,WiFi mesh,15,62548,60565,96.8296,39.0607,280.0000,11.719792,7
+nr_2g_sta15_1mb_seed9,nr,2g,15,1mb,9,Video,WiFi mesh,15,82506,80601,97.6911,29.2488,227.0000,15.599134,7
+nr_2g_sta15_1mb_seed9,nr,2g,15,1mb,9,Control,Cellular,15,5500,3958,71.9636,14.6038,76.0000,0.555175,6
+nr_2g_sta15_2mb_seed7,nr,2g,15,2mb,7,Control,WiFi mesh,15,9980,3904,39.1182,56.8052,452.0000,0.547601,8
+nr_2g_sta15_2mb_seed7,nr,2g,15,2mb,7,Sensor,WiFi mesh,15,56235,53953,95.9420,40.7254,326.0000,10.439523,9
+nr_2g_sta15_2mb_seed7,nr,2g,15,2mb,7,Video,WiFi mesh,15,84324,81871,97.0910,32.3497,215.0000,15.844634,9
+nr_2g_sta15_2mb_seed7,nr,2g,15,2mb,7,Control,Cellular,15,4150,3206,77.2530,11.3084,46.0000,0.449695,4
+nr_2g_sta15_2mb_seed8,nr,2g,15,2mb,8,Control,WiFi mesh,15,9960,4021,40.3715,63.2707,495.0000,0.564012,8
+nr_2g_sta15_2mb_seed8,nr,2g,15,2mb,8,Sensor,WiFi mesh,15,53644,51005,95.0805,61.9915,369.0000,9.868976,10
+nr_2g_sta15_2mb_seed8,nr,2g,15,2mb,8,Video,WiFi mesh,15,124903,121727,97.4572,43.8965,301.0000,23.560755,12
+nr_2g_sta15_2mb_seed8,nr,2g,15,2mb,8,Control,Cellular,15,4170,3035,72.7818,11.5191,29.0000,0.425709,5
+nr_2g_sta15_2mb_seed9,nr,2g,15,2mb,9,Control,WiFi mesh,15,9660,4353,45.0621,33.6567,459.0000,0.610581,5
+nr_2g_sta15_2mb_seed9,nr,2g,15,2mb,9,Sensor,WiFi mesh,15,90656,88352,97.4585,39.2623,280.0000,17.099729,9
+nr_2g_sta15_2mb_seed9,nr,2g,15,2mb,9,Video,WiFi mesh,15,100525,98865,98.3487,19.0164,108.0000,19.135045,10
+nr_2g_sta15_2mb_seed9,nr,2g,15,2mb,9,Control,Cellular,15,4470,3108,69.5302,12.6445,77.0000,0.435949,8
+nr_2g_sta15_50kb_seed7,nr,2g,15,50kb,7,Control,WiFi mesh,15,7740,4684,60.5168,19.5589,387.0000,0.657009,6
+nr_2g_sta15_50kb_seed7,nr,2g,15,50kb,7,Sensor,WiFi mesh,15,32547,31612,97.1272,18.8324,177.0000,6.114491,7
+nr_2g_sta15_50kb_seed7,nr,2g,15,50kb,7,Video,WiFi mesh,15,44080,42869,97.2527,12.9065,118.0000,8.294033,5
+nr_2g_sta15_50kb_seed7,nr,2g,15,50kb,7,Control,Cellular,15,6390,5244,82.0657,12.6466,79.0000,0.735558,4
+nr_2g_sta15_50kb_seed8,nr,2g,15,50kb,8,Control,WiFi mesh,15,7950,4691,59.0063,6.5297,79.0000,0.657991,10
+nr_2g_sta15_50kb_seed8,nr,2g,15,50kb,8,Sensor,WiFi mesh,15,32322,31769,98.2891,14.8740,170.0000,6.144886,7
+nr_2g_sta15_50kb_seed8,nr,2g,15,50kb,8,Video,WiFi mesh,15,40615,39767,97.9121,8.7297,79.0000,7.693299,7
+nr_2g_sta15_50kb_seed8,nr,2g,15,50kb,8,Control,Cellular,15,6180,3993,64.6117,11.0740,55.0000,0.560085,6
+nr_2g_sta15_50kb_seed9,nr,2g,15,50kb,9,Control,WiFi mesh,15,8470,4972,58.7013,10.8573,234.0000,0.697406,5
+nr_2g_sta15_50kb_seed9,nr,2g,15,50kb,9,Sensor,WiFi mesh,15,33686,33185,98.5127,14.3176,155.0000,6.419024,8
+nr_2g_sta15_50kb_seed9,nr,2g,15,50kb,9,Video,WiFi mesh,15,42046,41369,98.3899,8.0030,47.0000,8.003446,7
+nr_2g_sta15_50kb_seed9,nr,2g,15,50kb,9,Control,Cellular,14,5660,3720,65.7244,15.1141,98.0000,0.521792,7
+nr_2g_sta20_10kb_seed7,nr,2g,20,10kb,7,Control,WiFi mesh,20,12320,7777,63.1250,5.0916,38.0000,1.090854,9
+nr_2g_sta20_10kb_seed7,nr,2g,20,10kb,7,Sensor,WiFi mesh,20,21722,21374,98.3979,11.4648,100.0000,4.130923,7
+nr_2g_sta20_10kb_seed7,nr,2g,20,10kb,7,Video,WiFi mesh,20,26639,26071,97.8678,6.7875,38.0000,5.040635,7
+nr_2g_sta20_10kb_seed7,nr,2g,20,10kb,7,Control,Cellular,18,6120,4398,71.8627,12.8016,98.0000,0.616893,6
+nr_2g_sta20_10kb_seed8,nr,2g,20,10kb,8,Control,WiFi mesh,20,10940,6253,57.1572,5.9794,32.0000,0.877087,10
+nr_2g_sta20_10kb_seed8,nr,2g,20,10kb,8,Sensor,WiFi mesh,20,16310,15974,97.9399,9.5103,105.0000,3.084924,7
+nr_2g_sta20_10kb_seed8,nr,2g,20,10kb,8,Video,WiFi mesh,20,19099,18647,97.6334,5.8755,26.0000,3.602418,7
+nr_2g_sta20_10kb_seed8,nr,2g,20,10kb,8,Control,Cellular,20,7500,5172,68.9600,13.0513,46.0000,0.725459,10
+nr_2g_sta20_10kb_seed9,nr,2g,20,10kb,9,Control,WiFi mesh,20,10810,7293,67.4653,9.6040,89.0000,1.022965,9
+nr_2g_sta20_10kb_seed9,nr,2g,20,10kb,9,Sensor,WiFi mesh,20,23644,23152,97.9191,15.8455,181.0000,4.474585,8
+nr_2g_sta20_10kb_seed9,nr,2g,20,10kb,9,Video,WiFi mesh,20,30636,29801,97.2744,8.9834,41.0000,5.762018,8
+nr_2g_sta20_10kb_seed9,nr,2g,20,10kb,9,Control,Cellular,20,7630,5477,71.7824,11.1882,46.0000,0.768241,11
+nr_2g_sta20_1mb_seed7,nr,2g,20,1mb,7,Control,WiFi mesh,20,11470,4276,37.2799,30.9471,301.0000,0.599780,13
+nr_2g_sta20_1mb_seed7,nr,2g,20,1mb,7,Sensor,WiFi mesh,20,54566,52213,95.6878,42.2644,302.0000,10.101540,13
+nr_2g_sta20_1mb_seed7,nr,2g,20,1mb,7,Video,WiFi mesh,20,100640,97759,97.1373,29.8482,243.0000,18.919059,12
+nr_2g_sta20_1mb_seed7,nr,2g,20,1mb,7,Control,Cellular,19,6970,4901,70.3156,13.0684,84.0000,0.687447,7
+nr_2g_sta20_1mb_seed8,nr,2g,20,1mb,8,Control,WiFi mesh,20,11230,5345,47.5957,47.7173,324.0000,0.749725,7
+nr_2g_sta20_1mb_seed8,nr,2g,20,1mb,8,Sensor,WiFi mesh,20,52333,49805,95.1694,53.6483,332.0000,9.634420,10
+nr_2g_sta20_1mb_seed8,nr,2g,20,1mb,8,Video,WiFi mesh,20,82163,79396,96.6323,35.2857,242.0000,15.363423,10
+nr_2g_sta20_1mb_seed8,nr,2g,20,1mb,8,Control,Cellular,20,7210,5025,69.6949,15.0456,120.0000,0.704840,8
+nr_2g_sta20_1mb_seed9,nr,2g,20,1mb,9,Control,WiFi mesh,20,10790,4744,43.9666,54.9157,318.0000,0.665425,10
+nr_2g_sta20_1mb_seed9,nr,2g,20,1mb,9,Sensor,WiFi mesh,20,58657,55271,94.2275,55.6366,335.0000,10.693196,12
+nr_2g_sta20_1mb_seed9,nr,2g,20,1mb,9,Video,WiFi mesh,20,58200,55576,95.4914,39.4463,224.0000,10.752058,14
+nr_2g_sta20_1mb_seed9,nr,2g,20,1mb,9,Control,Cellular,20,7650,6110,79.8693,12.9961,83.0000,0.857029,7
+nr_2g_sta20_2mb_seed7,nr,2g,20,2mb,7,Control,WiFi mesh,20,13210,4536,34.3376,33.7671,236.0000,0.636250,13
+nr_2g_sta20_2mb_seed7,nr,2g,20,2mb,7,Sensor,WiFi mesh,20,51134,48184,94.2308,55.6129,339.0000,9.321712,13
+nr_2g_sta20_2mb_seed7,nr,2g,20,2mb,7,Video,WiFi mesh,20,113175,109937,97.1389,30.3061,215.0000,21.277466,13
+nr_2g_sta20_2mb_seed7,nr,2g,20,2mb,7,Control,Cellular,18,5230,4402,84.1683,12.3495,77.0000,0.617454,3
+nr_2g_sta20_2mb_seed8,nr,2g,20,2mb,8,Control,WiFi mesh,20,12880,5377,41.7469,78.1473,462.0000,0.754214,11
+nr_2g_sta20_2mb_seed8,nr,2g,20,2mb,8,Sensor,WiFi mesh,20,53114,50245,94.5984,87.8480,429.0000,9.719976,13
+nr_2g_sta20_2mb_seed8,nr,2g,20,2mb,8,Video,WiFi mesh,20,66912,64567,96.4954,49.9586,315.0000,12.492530,12
+nr_2g_sta20_2mb_seed8,nr,2g,20,2mb,8,Control,Cellular,20,5560,3544,63.7410,13.5707,75.0000,0.497105,9
+nr_2g_sta20_2mb_seed9,nr,2g,20,2mb,9,Control,WiFi mesh,20,12480,5663,45.3766,75.7702,433.0000,0.794330,9
+nr_2g_sta20_2mb_seed9,nr,2g,20,2mb,9,Sensor,WiFi mesh,20,49198,45416,92.3127,56.4995,327.0000,8.785082,11
+nr_2g_sta20_2mb_seed9,nr,2g,20,2mb,9,Video,WiFi mesh,20,80121,77003,96.1084,44.8134,296.0000,14.900325,12
+nr_2g_sta20_2mb_seed9,nr,2g,20,2mb,9,Control,Cellular,20,5960,5125,85.9899,11.7233,46.0000,0.718867,3
+nr_2g_sta20_50kb_seed7,nr,2g,20,50kb,7,Control,WiFi mesh,20,11110,6328,56.9577,9.8085,69.0000,0.887607,8
+nr_2g_sta20_50kb_seed7,nr,2g,20,50kb,7,Sensor,WiFi mesh,20,38392,37523,97.7365,20.3657,201.0000,7.257370,9
+nr_2g_sta20_50kb_seed7,nr,2g,20,50kb,7,Video,WiFi mesh,20,52061,50973,97.9101,8.9042,51.0000,9.861290,8
+nr_2g_sta20_50kb_seed7,nr,2g,20,50kb,7,Control,Cellular,19,7330,4161,56.7667,12.5848,74.0000,0.583650,9
+nr_2g_sta20_50kb_seed8,nr,2g,20,50kb,8,Control,WiFi mesh,20,10220,5128,50.1761,10.3679,144.0000,0.719287,8
+nr_2g_sta20_50kb_seed8,nr,2g,20,50kb,8,Sensor,WiFi mesh,20,28674,27748,96.7706,20.1844,251.0000,5.364185,7
+nr_2g_sta20_50kb_seed8,nr,2g,20,50kb,8,Video,WiFi mesh,20,47850,46658,97.5089,10.3613,49.0000,9.025719,7
+nr_2g_sta20_50kb_seed8,nr,2g,20,50kb,8,Control,Cellular,20,8220,5295,64.4161,13.9015,110.0000,0.742712,9
+nr_2g_sta20_50kb_seed9,nr,2g,20,50kb,9,Control,WiFi mesh,20,9280,5625,60.6142,71.4737,447.0000,0.789000,7
+nr_2g_sta20_50kb_seed9,nr,2g,20,50kb,9,Sensor,WiFi mesh,20,41356,39705,96.0078,33.2105,302.0000,7.679432,12
+nr_2g_sta20_50kb_seed9,nr,2g,20,50kb,9,Video,WiFi mesh,20,47598,45930,96.4957,25.9982,274.0000,8.884592,12
+nr_2g_sta20_50kb_seed9,nr,2g,20,50kb,9,Control,Cellular,20,9160,6144,67.0742,10.5047,26.0000,0.861798,12
+nr_2g_sta5_10kb_seed7,nr,2g,5,10kb,7,Control,WiFi mesh,5,4090,3636,88.8998,2.7650,13.0000,0.510010,3
+nr_2g_sta5_10kb_seed7,nr,2g,5,10kb,7,Sensor,WiFi mesh,5,7159,7094,99.0921,3.5630,32.0000,1.371534,0
+nr_2g_sta5_10kb_seed7,nr,2g,5,10kb,7,Video,WiFi mesh,5,8899,8843,99.3707,3.3348,20.0000,1.710141,0
+nr_2g_sta5_10kb_seed7,nr,2g,5,10kb,7,Control,Cellular,4,820,704,85.8537,16.3248,162.0000,0.098748,1
+nr_2g_sta5_10kb_seed8,nr,2g,5,10kb,8,Control,WiFi mesh,5,3980,3525,88.5678,5.3116,11.0000,0.494440,2
+nr_2g_sta5_10kb_seed8,nr,2g,5,10kb,8,Sensor,WiFi mesh,5,6661,6622,99.4145,4.2939,16.0000,1.280155,2
+nr_2g_sta5_10kb_seed8,nr,2g,5,10kb,8,Video,WiFi mesh,5,8285,8245,99.5172,3.2388,16.0000,1.594368,2
+nr_2g_sta5_10kb_seed8,nr,2g,5,10kb,8,Control,Cellular,4,930,740,79.5699,14.3778,46.0000,0.103797,2
+nr_2g_sta5_10kb_seed9,nr,2g,5,10kb,9,Control,WiFi mesh,5,4470,4275,95.6376,2.4323,13.0000,0.599640,0
+nr_2g_sta5_10kb_seed9,nr,2g,5,10kb,9,Sensor,WiFi mesh,5,8813,8758,99.3759,2.9060,16.0000,1.693685,0
+nr_2g_sta5_10kb_seed9,nr,2g,5,10kb,9,Video,WiFi mesh,5,11018,10924,99.1469,2.6247,15.0000,2.113022,0
+nr_2g_sta5_10kb_seed9,nr,2g,5,10kb,9,Control,Cellular,4,440,330,75.0000,11.2855,36.0000,0.046288,1
+nr_2g_sta5_1mb_seed7,nr,2g,5,1mb,7,Control,WiFi mesh,5,3250,1448,44.5538,107.3785,313.0000,0.203106,2
+nr_2g_sta5_1mb_seed7,nr,2g,5,1mb,7,Sensor,WiFi mesh,5,36358,35768,98.3772,98.6234,269.0000,6.922821,2
+nr_2g_sta5_1mb_seed7,nr,2g,5,1mb,7,Video,WiFi mesh,5,40643,39972,98.3490,90.4828,268.0000,7.736715,2
+nr_2g_sta5_1mb_seed7,nr,2g,5,1mb,7,Control,Cellular,5,1660,1030,62.0482,31.5887,173.0000,0.144475,2
+nr_2g_sta5_1mb_seed8,nr,2g,5,1mb,8,Control,WiFi mesh,5,3500,1296,37.0286,37.1771,560.0000,0.181786,5
+nr_2g_sta5_1mb_seed8,nr,2g,5,1mb,8,Sensor,WiFi mesh,5,13050,12714,97.4253,21.3493,209.0000,2.459195,4
+nr_2g_sta5_1mb_seed8,nr,2g,5,1mb,8,Video,WiFi mesh,5,20652,20236,97.9857,20.4475,206.0000,3.915454,4
+nr_2g_sta5_1mb_seed8,nr,2g,5,1mb,8,Control,Cellular,4,1410,1389,98.5106,15.9040,112.0000,0.194830,0
+nr_2g_sta5_1mb_seed9,nr,2g,5,1mb,9,Control,WiFi mesh,5,3370,1272,37.7448,17.0884,316.0000,0.178419,2
+nr_2g_sta5_1mb_seed9,nr,2g,5,1mb,9,Sensor,WiFi mesh,5,28519,28175,98.7938,11.6569,74.0000,5.452816,3
+nr_2g_sta5_1mb_seed9,nr,2g,5,1mb,9,Video,WiFi mesh,5,32186,31854,98.9685,11.4580,63.0000,6.165070,3
+nr_2g_sta5_1mb_seed9,nr,2g,5,1mb,9,Control,Cellular,5,1540,1071,69.5455,23.7748,148.0000,0.150226,1
+nr_2g_sta5_2mb_seed7,nr,2g,5,2mb,7,Control,WiFi mesh,5,3280,1776,54.1463,55.3321,454.0000,0.249114,2
+nr_2g_sta5_2mb_seed7,nr,2g,5,2mb,7,Sensor,WiFi mesh,5,60722,59402,97.8262,58.5793,296.0000,11.498363,2
+nr_2g_sta5_2mb_seed7,nr,2g,5,2mb,7,Video,WiFi mesh,5,58308,57084,97.9008,25.4181,298.0000,11.049598,3
+nr_2g_sta5_2mb_seed7,nr,2g,5,2mb,7,Control,Cellular,5,1630,1260,77.3006,19.6158,125.0000,0.176736,1
+nr_2g_sta5_2mb_seed8,nr,2g,5,2mb,8,Control,WiFi mesh,5,3650,1178,32.2740,38.6461,360.0000,0.165234,5
+nr_2g_sta5_2mb_seed8,nr,2g,5,2mb,8,Sensor,WiFi mesh,5,19095,18408,96.4022,39.2937,312.0000,3.561367,4
+nr_2g_sta5_2mb_seed8,nr,2g,5,2mb,8,Video,WiFi mesh,5,28942,28286,97.7334,29.5403,249.0000,5.473934,4
+nr_2g_sta5_2mb_seed8,nr,2g,5,2mb,8,Control,Cellular,4,1260,1225,97.2222,15.2729,87.0000,0.171827,0
+nr_2g_sta5_2mb_seed9,nr,2g,5,2mb,9,Control,WiFi mesh,5,3590,1170,32.5905,76.2807,450.0000,0.164112,3
+nr_2g_sta5_2mb_seed9,nr,2g,5,2mb,9,Sensor,WiFi mesh,5,44300,43083,97.2528,68.1026,306.0000,8.339005,3
+nr_2g_sta5_2mb_seed9,nr,2g,5,2mb,9,Video,WiFi mesh,5,41324,40383,97.7229,67.4119,285.0000,7.816285,3
+nr_2g_sta5_2mb_seed9,nr,2g,5,2mb,9,Control,Cellular,5,1320,749,56.7424,24.1264,148.0000,0.105060,2
+nr_2g_sta5_50kb_seed7,nr,2g,5,50kb,7,Control,WiFi mesh,5,3620,2861,79.0331,5.3584,55.0000,0.401303,4
+nr_2g_sta5_50kb_seed7,nr,2g,5,50kb,7,Sensor,WiFi mesh,5,15018,14833,98.7681,7.5857,84.0000,2.869805,1
+nr_2g_sta5_50kb_seed7,nr,2g,5,50kb,7,Video,WiFi mesh,5,18584,18427,99.1552,4.8109,24.0000,3.565603,1
+nr_2g_sta5_50kb_seed7,nr,2g,5,50kb,7,Control,Cellular,5,1290,894,69.3023,24.3775,146.0000,0.125398,3
+nr_2g_sta5_50kb_seed8,nr,2g,5,50kb,8,Control,WiFi mesh,5,3900,3437,88.1282,4.2955,72.0000,0.482097,3
+nr_2g_sta5_50kb_seed8,nr,2g,5,50kb,8,Sensor,WiFi mesh,5,18444,18307,99.2572,9.0066,128.0000,3.542371,1
+nr_2g_sta5_50kb_seed8,nr,2g,5,50kb,8,Video,WiFi mesh,5,23094,22700,98.2939,4.8476,32.0000,4.392856,1
+nr_2g_sta5_50kb_seed8,nr,2g,5,50kb,8,Control,Cellular,5,1010,866,85.7426,21.4513,135.0000,0.121471,2
+nr_2g_sta5_50kb_seed9,nr,2g,5,50kb,9,Control,WiFi mesh,5,3760,3366,89.5213,5.3905,73.0000,0.472138,1
+nr_2g_sta5_50kb_seed9,nr,2g,5,50kb,9,Sensor,WiFi mesh,5,19939,19785,99.2276,7.6870,74.0000,3.828512,1
+nr_2g_sta5_50kb_seed9,nr,2g,5,50kb,9,Video,WiFi mesh,5,24797,24526,98.9071,8.2449,50.0000,4.746370,1
+nr_2g_sta5_50kb_seed9,nr,2g,5,50kb,9,Control,Cellular,5,1150,923,80.2609,10.2045,36.0000,0.129466,1
+nr_5g_sta10_10kb_seed7,nr,5g,10,10kb,7,Control,WiFi mesh,10,7220,6505,90.0970,7.2742,172.0000,0.912435,0
+nr_5g_sta10_10kb_seed7,nr,5g,10,10kb,7,Sensor,WiFi mesh,10,13633,13468,98.7897,7.5452,137.0000,2.603677,3
+nr_5g_sta10_10kb_seed7,nr,5g,10,10kb,7,Video,WiFi mesh,10,17034,16855,98.9492,6.6960,66.0000,3.259400,2
+nr_5g_sta10_10kb_seed7,nr,5g,10,10kb,7,Control,Cellular,9,2400,1869,77.8750,13.8976,75.0000,0.262158,3
+nr_5g_sta10_10kb_seed8,nr,5g,10,10kb,8,Control,WiFi mesh,10,7040,5806,82.4716,4.6463,58.0000,0.814388,5
+nr_5g_sta10_10kb_seed8,nr,5g,10,10kb,8,Sensor,WiFi mesh,10,12668,12498,98.6580,6.6907,97.0000,2.415885,4
+nr_5g_sta10_10kb_seed8,nr,5g,10,10kb,8,Video,WiFi mesh,10,15738,15568,98.9198,4.6327,27.0000,3.010237,4
+nr_5g_sta10_10kb_seed8,nr,5g,10,10kb,8,Control,Cellular,10,2580,2268,87.9070,10.8895,21.0000,0.318125,2
+nr_5g_sta10_10kb_seed9,nr,5g,10,10kb,9,Control,WiFi mesh,10,7170,6245,87.0990,3.7084,17.0000,0.875965,4
+nr_5g_sta10_10kb_seed9,nr,5g,10,10kb,9,Sensor,WiFi mesh,10,12803,12672,98.9768,4.8801,33.0000,2.449571,3
+nr_5g_sta10_10kb_seed9,nr,5g,10,10kb,9,Video,WiFi mesh,10,15628,15502,99.1938,4.4423,29.0000,2.997459,3
+nr_5g_sta10_10kb_seed9,nr,5g,10,10kb,9,Control,Cellular,7,2450,2038,83.1837,14.5392,109.0000,0.285863,2
+nr_5g_sta10_1mb_seed7,nr,5g,10,1mb,7,Control,WiFi mesh,10,6980,3905,55.9456,21.4080,317.0000,0.547741,4
+nr_5g_sta10_1mb_seed7,nr,5g,10,1mb,7,Sensor,WiFi mesh,10,56279,55565,98.7313,18.4184,180.0000,10.754029,4
+nr_5g_sta10_1mb_seed7,nr,5g,10,1mb,7,Video,WiFi mesh,10,69179,68484,98.9954,13.8268,130.0000,13.255334,4
+nr_5g_sta10_1mb_seed7,nr,5g,10,1mb,7,Control,Cellular,9,2640,2588,98.0303,12.0931,47.0000,0.363010,0
+nr_5g_sta10_1mb_seed8,nr,5g,10,1mb,8,Control,WiFi mesh,10,6320,3916,61.9620,19.9460,203.0000,0.549284,6
+nr_5g_sta10_1mb_seed8,nr,5g,10,1mb,8,Sensor,WiFi mesh,10,76719,75199,98.0187,18.7435,153.0000,14.554798,5
+nr_5g_sta10_1mb_seed8,nr,5g,10,1mb,8,Video,WiFi mesh,10,91731,90354,98.4989,15.1736,141.0000,17.488806,5
+nr_5g_sta10_1mb_seed8,nr,5g,10,1mb,8,Control,Cellular,10,3300,3048,92.3636,10.7818,21.0000,0.427533,1
+nr_5g_sta10_1mb_seed9,nr,5g,10,1mb,9,Control,WiFi mesh,10,6680,3750,56.1377,67.0515,703.0000,0.526000,3
+nr_5g_sta10_1mb_seed9,nr,5g,10,1mb,9,Sensor,WiFi mesh,10,41829,40568,96.9853,37.0286,391.0000,7.850051,5
+nr_5g_sta10_1mb_seed9,nr,5g,10,1mb,9,Video,WiFi mesh,10,50258,49146,97.7874,32.8851,356.0000,9.510938,5
+nr_5g_sta10_1mb_seed9,nr,5g,10,1mb,9,Control,Cellular,8,2940,1923,65.4082,15.0736,110.0000,0.269733,3
+nr_5g_sta10_2mb_seed7,nr,5g,10,2mb,7,Control,WiFi mesh,10,7470,2523,33.7751,16.1000,254.0000,0.353893,4
+nr_5g_sta10_2mb_seed7,nr,5g,10,2mb,7,Sensor,WiFi mesh,10,75491,74672,98.9151,9.7317,118.0000,14.453144,8
+nr_5g_sta10_2mb_seed7,nr,5g,10,2mb,7,Video,WiFi mesh,10,99257,98417,99.1537,8.2119,95.0000,19.050176,8
+nr_5g_sta10_2mb_seed7,nr,5g,10,2mb,7,Control,Cellular,9,2150,2113,98.2791,11.5529,45.0000,0.296383,0
+nr_5g_sta10_2mb_seed8,nr,5g,10,2mb,8,Control,WiFi mesh,10,6790,4673,68.8218,46.4463,279.0000,0.655466,4
+nr_5g_sta10_2mb_seed8,nr,5g,10,2mb,8,Sensor,WiFi mesh,10,113773,111680,98.1604,31.0179,282.0000,21.617520,3
+nr_5g_sta10_2mb_seed8,nr,5g,10,2mb,8,Video,WiFi mesh,10,141854,139605,98.4146,22.9261,234.0000,27.023800,3
+nr_5g_sta10_2mb_seed8,nr,5g,10,2mb,8,Control,Cellular,10,2830,2635,93.1095,11.4012,27.0000,0.369603,1
+nr_5g_sta10_2mb_seed9,nr,5g,10,2mb,9,Control,WiFi mesh,10,7120,3056,42.9213,56.5212,500.0000,0.428655,4
+nr_5g_sta10_2mb_seed9,nr,5g,10,2mb,9,Sensor,WiFi mesh,10,55733,54649,98.0550,14.2841,152.0000,10.576318,7
+nr_5g_sta10_2mb_seed9,nr,5g,10,2mb,9,Video,WiFi mesh,10,80339,78545,97.7670,33.2710,205.0000,15.202398,7
+nr_5g_sta10_2mb_seed9,nr,5g,10,2mb,9,Control,Cellular,10,2500,2022,80.8800,14.6874,126.0000,0.283619,3
+nr_5g_sta10_50kb_seed7,nr,5g,10,50kb,7,Control,WiFi mesh,10,6490,5225,80.5085,11.6407,170.0000,0.732893,1
+nr_5g_sta10_50kb_seed7,nr,5g,10,50kb,7,Sensor,WiFi mesh,10,28235,27895,98.7958,11.5841,119.0000,5.396744,3
+nr_5g_sta10_50kb_seed7,nr,5g,10,50kb,7,Video,WiFi mesh,10,37194,36722,98.7310,10.4080,102.0000,7.105651,4
+nr_5g_sta10_50kb_seed7,nr,5g,10,50kb,7,Control,Cellular,9,3130,2685,85.7827,12.6484,46.0000,0.376616,2
+nr_5g_sta10_50kb_seed8,nr,5g,10,50kb,8,Control,WiFi mesh,10,6950,6004,86.3885,2.7329,18.0000,0.842161,4
+nr_5g_sta10_50kb_seed8,nr,5g,10,50kb,8,Sensor,WiFi mesh,10,34957,34567,98.8843,6.0288,53.0000,6.688443,2
+nr_5g_sta10_50kb_seed8,nr,5g,10,50kb,8,Video,WiFi mesh,10,43603,43093,98.8304,4.0743,25.0000,8.339077,2
+nr_5g_sta10_50kb_seed8,nr,5g,10,50kb,8,Control,Cellular,10,2670,2528,94.6816,10.4084,21.0000,0.354594,1
+nr_5g_sta10_50kb_seed9,nr,5g,10,50kb,9,Control,WiFi mesh,10,6080,4980,81.9079,10.2746,228.0000,0.698528,4
+nr_5g_sta10_50kb_seed9,nr,5g,10,50kb,9,Sensor,WiFi mesh,10,29663,29231,98.5436,12.5372,158.0000,5.655394,4
+nr_5g_sta10_50kb_seed9,nr,5g,10,50kb,9,Video,WiFi mesh,10,36808,36344,98.7394,10.1273,57.0000,7.032470,4
+nr_5g_sta10_50kb_seed9,nr,5g,10,50kb,9,Control,Cellular,9,3540,2487,70.2542,14.1806,120.0000,0.348843,3
+nr_5g_sta15_10kb_seed7,nr,5g,15,10kb,7,Control,WiFi mesh,15,8390,6247,74.4577,5.2952,72.0000,0.876246,7
+nr_5g_sta15_10kb_seed7,nr,5g,15,10kb,7,Sensor,WiFi mesh,15,16433,15990,97.3042,10.5407,121.0000,3.090072,6
+nr_5g_sta15_10kb_seed7,nr,5g,15,10kb,7,Video,WiFi mesh,15,21527,21035,97.7145,7.9015,78.0000,4.066784,5
+nr_5g_sta15_10kb_seed7,nr,5g,15,10kb,7,Control,Cellular,15,5740,4029,70.1916,13.1217,76.0000,0.565134,5
+nr_5g_sta15_10kb_seed8,nr,5g,15,10kb,8,Control,WiFi mesh,15,10980,9654,87.9235,4.7677,29.0000,1.354134,8
+nr_5g_sta15_10kb_seed8,nr,5g,15,10kb,8,Sensor,WiFi mesh,15,21314,21083,98.9162,7.2698,56.0000,4.076077,3
+nr_5g_sta15_10kb_seed8,nr,5g,15,10kb,8,Video,WiFi mesh,15,26640,26249,98.5323,5.3898,32.0000,5.076214,3
+nr_5g_sta15_10kb_seed8,nr,5g,15,10kb,8,Control,Cellular,14,3150,2547,80.8571,11.6891,46.0000,0.357259,3
+nr_5g_sta15_10kb_seed9,nr,5g,15,10kb,9,Control,WiFi mesh,15,8740,6170,70.5950,4.0362,42.0000,0.865445,6
+nr_5g_sta15_10kb_seed9,nr,5g,15,10kb,9,Sensor,WiFi mesh,15,13653,13321,97.5683,7.4605,71.0000,2.573354,7
+nr_5g_sta15_10kb_seed9,nr,5g,15,10kb,9,Video,WiFi mesh,15,17233,16903,98.0851,5.9043,46.0000,3.266829,7
+nr_5g_sta15_10kb_seed9,nr,5g,15,10kb,9,Control,Cellular,15,5390,3807,70.6308,14.1928,64.0000,0.533995,7
+nr_5g_sta15_1mb_seed7,nr,5g,15,1mb,7,Control,WiFi mesh,15,9190,5234,56.9532,48.0429,665.0000,0.734156,8
+nr_5g_sta15_1mb_seed7,nr,5g,15,1mb,7,Sensor,WiFi mesh,15,70825,69215,97.7268,26.9854,403.0000,13.394433,8
+nr_5g_sta15_1mb_seed7,nr,5g,15,1mb,7,Video,WiFi mesh,15,107962,106026,98.2068,25.1139,384.0000,20.521042,8
+nr_5g_sta15_1mb_seed7,nr,5g,15,1mb,7,Control,Cellular,14,4940,3980,80.5668,13.0993,57.0000,0.558261,3
+nr_5g_sta15_1mb_seed8,nr,5g,15,1mb,8,Control,WiFi mesh,15,9610,2064,21.4776,42.8354,605.0000,0.289510,12
+nr_5g_sta15_1mb_seed8,nr,5g,15,1mb,8,Sensor,WiFi mesh,15,42402,41063,96.8421,12.4117,172.0000,7.944765,11
+nr_5g_sta15_1mb_seed8,nr,5g,15,1mb,8,Video,WiFi mesh,15,52031,50441,96.9441,9.9145,173.0000,9.759786,10
+nr_5g_sta15_1mb_seed8,nr,5g,15,1mb,8,Control,Cellular,13,4520,3304,73.0973,11.6957,56.0000,0.463441,4
+nr_5g_sta15_1mb_seed9,nr,5g,15,1mb,9,Control,WiFi mesh,15,8620,4480,51.9722,50.5433,360.0000,0.628395,7
+nr_5g_sta15_1mb_seed9,nr,5g,15,1mb,9,Sensor,WiFi mesh,15,62019,59924,96.6220,38.7902,267.0000,11.595694,9
+nr_5g_sta15_1mb_seed9,nr,5g,15,1mb,9,Video,WiFi mesh,15,81522,79442,97.4485,26.8036,264.0000,15.374379,8
+nr_5g_sta15_1mb_seed9,nr,5g,15,1mb,9,Control,Cellular,15,5510,3976,72.1597,15.6310,106.0000,0.557700,6
+nr_5g_sta15_2mb_seed7,nr,5g,15,2mb,7,Control,WiFi mesh,15,9940,4832,48.6117,56.3091,675.0000,0.677769,9
+nr_5g_sta15_2mb_seed7,nr,5g,15,2mb,7,Sensor,WiFi mesh,15,88142,86094,97.6765,38.8829,264.0000,16.662021,9
+nr_5g_sta15_2mb_seed7,nr,5g,15,2mb,7,Video,WiFi mesh,15,105786,103750,98.0754,22.4133,208.0000,20.080223,9
+nr_5g_sta15_2mb_seed7,nr,5g,15,2mb,7,Control,Cellular,14,4190,3734,89.1169,13.6263,79.0000,0.523756,1
+nr_5g_sta15_2mb_seed8,nr,5g,15,2mb,8,Control,WiFi mesh,15,11160,2987,26.7652,40.2241,456.0000,0.418977,10
+nr_5g_sta15_2mb_seed8,nr,5g,15,2mb,8,Sensor,WiFi mesh,15,48082,46743,97.2152,15.3790,225.0000,9.043667,11
+nr_5g_sta15_2mb_seed8,nr,5g,15,2mb,8,Video,WiFi mesh,15,75875,74307,97.9334,9.4198,159.0000,14.380243,11
+nr_5g_sta15_2mb_seed8,nr,5g,15,2mb,8,Control,Cellular,13,2970,2251,75.7912,11.0032,46.0000,0.315740,4
+nr_5g_sta15_2mb_seed9,nr,5g,15,2mb,9,Control,WiFi mesh,15,9950,4326,43.4774,84.6782,683.0000,0.606794,9
+nr_5g_sta15_2mb_seed9,nr,5g,15,2mb,9,Sensor,WiFi mesh,15,83005,81171,97.7905,43.5732,279.0000,15.708928,11
+nr_5g_sta15_2mb_seed9,nr,5g,15,2mb,9,Video,WiFi mesh,15,95978,93300,97.2098,37.1030,294.0000,18.056916,11
+nr_5g_sta15_2mb_seed9,nr,5g,15,2mb,9,Control,Cellular,15,4180,2811,67.2488,12.6045,46.0000,0.394290,5
+nr_5g_sta15_50kb_seed7,nr,5g,15,50kb,7,Control,WiFi mesh,15,7640,5105,66.8194,15.0464,358.0000,0.716061,7
+nr_5g_sta15_50kb_seed7,nr,5g,15,50kb,7,Sensor,WiFi mesh,15,37175,36289,97.6167,17.5644,95.0000,7.019958,5
+nr_5g_sta15_50kb_seed7,nr,5g,15,50kb,7,Video,WiFi mesh,15,46190,45309,98.0927,11.5045,68.0000,8.766230,5
+nr_5g_sta15_50kb_seed7,nr,5g,15,50kb,7,Control,Cellular,15,6490,4320,66.5639,11.2744,40.0000,0.605952,6
+nr_5g_sta15_50kb_seed8,nr,5g,15,50kb,8,Control,WiFi mesh,15,7660,4908,64.0731,21.9591,310.0000,0.688429,7
+nr_5g_sta15_50kb_seed8,nr,5g,15,50kb,8,Sensor,WiFi mesh,15,37932,37003,97.5509,24.1503,110.0000,7.158189,4
+nr_5g_sta15_50kb_seed8,nr,5g,15,50kb,8,Video,WiFi mesh,15,42686,41754,97.8166,19.6456,82.0000,8.077982,4
+nr_5g_sta15_50kb_seed8,nr,5g,15,50kb,8,Control,Cellular,15,6470,4569,70.6182,11.6614,62.0000,0.640878,5
+nr_5g_sta15_50kb_seed9,nr,5g,15,50kb,9,Control,WiFi mesh,15,8290,5036,60.7479,21.5658,425.0000,0.706383,7
+nr_5g_sta15_50kb_seed9,nr,5g,15,50kb,9,Sensor,WiFi mesh,15,32300,31586,97.7895,21.9163,226.0000,6.109458,8
+nr_5g_sta15_50kb_seed9,nr,5g,15,50kb,9,Video,WiFi mesh,15,40251,39417,97.9280,16.3767,140.0000,7.625539,8
+nr_5g_sta15_50kb_seed9,nr,5g,15,50kb,9,Control,Cellular,15,5840,4034,69.0753,13.5562,65.0000,0.565836,6
+nr_5g_sta20_10kb_seed7,nr,5g,20,10kb,7,Control,WiFi mesh,20,11300,7162,63.3805,6.3367,97.0000,1.004590,11
+nr_5g_sta20_10kb_seed7,nr,5g,20,10kb,7,Sensor,WiFi mesh,20,19844,19270,97.1074,9.9926,118.0000,3.723216,12
+nr_5g_sta20_10kb_seed7,nr,5g,20,10kb,7,Video,WiFi mesh,20,23021,22392,97.2677,7.3858,68.0000,4.327635,12
+nr_5g_sta20_10kb_seed7,nr,5g,20,10kb,7,Control,Cellular,20,7140,3759,52.6471,13.1159,88.0000,0.527262,10
+nr_5g_sta20_10kb_seed8,nr,5g,20,10kb,8,Control,WiFi mesh,20,10910,7134,65.3896,10.7037,384.0000,1.000662,10
+nr_5g_sta20_10kb_seed8,nr,5g,20,10kb,8,Sensor,WiFi mesh,20,15788,15462,97.9351,13.5422,242.0000,2.985987,12
+nr_5g_sta20_10kb_seed8,nr,5g,20,10kb,8,Video,WiFi mesh,20,19376,19017,98.1472,8.5202,46.0000,3.674235,12
+nr_5g_sta20_10kb_seed8,nr,5g,20,10kb,8,Control,Cellular,20,7530,4532,60.1859,11.4888,46.0000,0.635689,11
+nr_5g_sta20_10kb_seed9,nr,5g,20,10kb,9,Control,WiFi mesh,20,12260,7086,57.7977,12.5352,356.0000,0.993930,11
+nr_5g_sta20_10kb_seed9,nr,5g,20,10kb,9,Sensor,WiFi mesh,20,17568,17232,98.0874,13.0099,286.0000,3.329405,8
+nr_5g_sta20_10kb_seed9,nr,5g,20,10kb,9,Video,WiFi mesh,20,21398,21057,98.4064,11.3084,269.0000,4.069925,8
+nr_5g_sta20_10kb_seed9,nr,5g,20,10kb,9,Control,Cellular,18,6180,4538,73.4304,11.3687,45.0000,0.636530,8
+nr_5g_sta20_1mb_seed7,nr,5g,20,1mb,7,Control,WiFi mesh,20,12210,6070,49.7133,46.7211,403.0000,0.851419,13
+nr_5g_sta20_1mb_seed7,nr,5g,20,1mb,7,Sensor,WiFi mesh,20,77051,74586,96.8008,24.1366,263.0000,14.433139,12
+nr_5g_sta20_1mb_seed7,nr,5g,20,1mb,7,Video,WiFi mesh,20,112640,109957,97.6181,28.3591,257.0000,21.280592,11
+nr_5g_sta20_1mb_seed7,nr,5g,20,1mb,7,Control,Cellular,18,6230,5095,81.7817,13.3264,87.0000,0.714659,4
+nr_5g_sta20_1mb_seed8,nr,5g,20,1mb,8,Control,WiFi mesh,20,11210,5436,48.4924,56.0672,380.0000,0.762490,8
+nr_5g_sta20_1mb_seed8,nr,5g,20,1mb,8,Sensor,WiFi mesh,20,83522,80811,96.7541,44.1309,283.0000,15.637554,13
+nr_5g_sta20_1mb_seed8,nr,5g,20,1mb,8,Video,WiFi mesh,20,88765,86471,97.4156,37.2964,265.0000,16.733143,11
+nr_5g_sta20_1mb_seed8,nr,5g,20,1mb,8,Control,Cellular,20,7230,4729,65.4080,13.1710,49.0000,0.663321,9
+nr_5g_sta20_1mb_seed9,nr,5g,20,1mb,9,Control,WiFi mesh,20,11840,4262,35.9966,60.6535,627.0000,0.597817,10
+nr_5g_sta20_1mb_seed9,nr,5g,20,1mb,9,Sensor,WiFi mesh,20,59595,57550,96.5685,35.4549,319.0000,11.134783,11
+nr_5g_sta20_1mb_seed9,nr,5g,20,1mb,9,Video,WiFi mesh,20,78973,76624,97.0256,31.8136,262.0000,14.827510,12
+nr_5g_sta20_1mb_seed9,nr,5g,20,1mb,9,Control,Cellular,18,6600,5710,86.5152,12.6961,81.0000,0.800923,6
+nr_5g_sta20_2mb_seed7,nr,5g,20,2mb,7,Control,WiFi mesh,20,12830,5965,46.4926,71.8196,458.0000,0.836691,12
+nr_5g_sta20_2mb_seed7,nr,5g,20,2mb,7,Sensor,WiFi mesh,20,83273,80293,96.4214,31.7301,378.0000,15.536897,11
+nr_5g_sta20_2mb_seed7,nr,5g,20,2mb,7,Video,WiFi mesh,20,148588,145181,97.7071,24.0303,245.0000,28.099586,12
+nr_5g_sta20_2mb_seed7,nr,5g,20,2mb,7,Control,Cellular,19,5610,4297,76.5954,15.4822,108.0000,0.602726,6
+nr_5g_sta20_2mb_seed8,nr,5g,20,2mb,8,Control,WiFi mesh,20,12980,4090,31.5100,87.9842,412.0000,0.573691,12
+nr_5g_sta20_2mb_seed8,nr,5g,20,2mb,8,Sensor,WiFi mesh,20,54828,51631,94.1690,61.4546,281.0000,9.988306,14
+nr_5g_sta20_2mb_seed8,nr,5g,20,2mb,8,Video,WiFi mesh,20,66080,63314,95.8142,56.4773,291.0000,12.250134,14
+nr_5g_sta20_2mb_seed8,nr,5g,20,2mb,8,Control,Cellular,20,5460,3779,69.2125,12.5793,46.0000,0.530068,7
+nr_5g_sta20_2mb_seed9,nr,5g,20,2mb,9,Control,WiFi mesh,20,13830,5262,38.0477,51.0668,629.0000,0.738083,11
+nr_5g_sta20_2mb_seed9,nr,5g,20,2mb,9,Sensor,WiFi mesh,20,70938,68468,96.5181,21.6664,278.0000,13.248509,15
+nr_5g_sta20_2mb_seed9,nr,5g,20,2mb,9,Video,WiFi mesh,20,104731,102284,97.6635,23.2995,239.0000,19.795473,12
+nr_5g_sta20_2mb_seed9,nr,5g,20,2mb,9,Control,Cellular,17,4610,3885,84.2733,11.8595,52.0000,0.544936,5
+nr_5g_sta20_50kb_seed7,nr,5g,20,50kb,7,Control,WiFi mesh,20,10190,5654,55.4858,19.8808,217.0000,0.793068,11
+nr_5g_sta20_50kb_seed7,nr,5g,20,50kb,7,Sensor,WiFi mesh,20,42775,41608,97.2718,19.7745,155.0000,8.047853,8
+nr_5g_sta20_50kb_seed7,nr,5g,20,50kb,7,Video,WiFi mesh,20,51937,50786,97.7839,16.7108,115.0000,9.824714,8
+nr_5g_sta20_50kb_seed7,nr,5g,20,50kb,7,Control,Cellular,20,8250,5360,64.9697,13.2748,99.0000,0.751829,9
+nr_5g_sta20_50kb_seed8,nr,5g,20,50kb,8,Control,WiFi mesh,20,9670,5269,54.4881,33.3929,343.0000,0.739065,11
+nr_5g_sta20_50kb_seed8,nr,5g,20,50kb,8,Sensor,WiFi mesh,20,33146,32424,97.8218,34.9214,186.0000,6.269830,14
+nr_5g_sta20_50kb_seed8,nr,5g,20,50kb,8,Video,WiFi mesh,20,44077,43261,98.1487,28.4030,176.0000,8.367874,14
+nr_5g_sta20_50kb_seed8,nr,5g,20,50kb,8,Control,Cellular,20,8770,5218,59.4983,12.9224,47.0000,0.731911,11
+nr_5g_sta20_50kb_seed9,nr,5g,20,50kb,9,Control,WiFi mesh,20,11410,5499,48.1946,30.7635,341.0000,0.771326,13
+nr_5g_sta20_50kb_seed9,nr,5g,20,50kb,9,Sensor,WiFi mesh,20,33306,32574,97.8022,26.4213,279.0000,6.299616,12
+nr_5g_sta20_50kb_seed9,nr,5g,20,50kb,9,Video,WiFi mesh,20,38832,38107,98.1330,21.0864,231.0000,7.370805,11
+nr_5g_sta20_50kb_seed9,nr,5g,20,50kb,9,Control,Cellular,18,7030,5489,78.0797,12.8718,75.0000,0.769924,8
+nr_5g_sta5_10kb_seed7,nr,5g,5,10kb,7,Control,WiFi mesh,5,4180,3968,94.9282,2.9106,12.0000,0.556578,2
+nr_5g_sta5_10kb_seed7,nr,5g,5,10kb,7,Sensor,WiFi mesh,5,8161,8079,98.9952,3.6708,43.0000,1.562230,0
+nr_5g_sta5_10kb_seed7,nr,5g,5,10kb,7,Video,WiFi mesh,5,10154,10076,99.2318,3.7468,55.0000,1.948850,0
+nr_5g_sta5_10kb_seed7,nr,5g,5,10kb,7,Control,Cellular,5,730,671,91.9178,23.0716,169.0000,0.094119,0
+nr_5g_sta5_10kb_seed8,nr,5g,5,10kb,8,Control,WiFi mesh,5,3010,1576,52.3588,1.0269,10.0000,0.221060,5
+nr_5g_sta5_10kb_seed8,nr,5g,5,10kb,8,Sensor,WiFi mesh,5,4633,4481,96.7192,6.0819,37.0000,0.865658,4
+nr_5g_sta5_10kb_seed8,nr,5g,5,10kb,8,Video,WiFi mesh,5,5576,5417,97.1485,4.9432,36.0000,1.046867,3
+nr_5g_sta5_10kb_seed8,nr,5g,5,10kb,8,Control,Cellular,5,1900,1747,91.9474,16.8163,91.0000,0.245046,2
+nr_5g_sta5_10kb_seed9,nr,5g,5,10kb,9,Control,WiFi mesh,5,3900,3685,94.4872,5.8534,82.0000,0.516883,0
+nr_5g_sta5_10kb_seed9,nr,5g,5,10kb,9,Sensor,WiFi mesh,5,6943,6847,98.6173,4.5134,36.0000,1.323715,2
+nr_5g_sta5_10kb_seed9,nr,5g,5,10kb,9,Video,WiFi mesh,5,9602,9476,98.6878,4.0735,25.0000,1.832690,1
+nr_5g_sta5_10kb_seed9,nr,5g,5,10kb,9,Control,Cellular,4,1010,632,62.5743,10.6973,36.0000,0.088649,1
+nr_5g_sta5_1mb_seed7,nr,5g,5,1mb,7,Control,WiFi mesh,5,3650,1464,40.1096,32.4573,291.0000,0.205350,2
+nr_5g_sta5_1mb_seed7,nr,5g,5,1mb,7,Sensor,WiFi mesh,5,24057,23312,96.9032,36.2796,223.0000,4.511339,2
+nr_5g_sta5_1mb_seed7,nr,5g,5,1mb,7,Video,WiFi mesh,5,28354,27710,97.7287,32.0078,201.0000,5.362979,2
+nr_5g_sta5_1mb_seed7,nr,5g,5,1mb,7,Control,Cellular,5,1260,809,64.2063,12.7536,31.0000,0.113476,2
+nr_5g_sta5_1mb_seed8,nr,5g,5,1mb,8,Control,WiFi mesh,5,2980,1357,45.5369,74.0367,464.0000,0.190342,2
+nr_5g_sta5_1mb_seed8,nr,5g,5,1mb,8,Sensor,WiFi mesh,5,17540,16639,94.8632,33.2760,271.0000,3.219446,4
+nr_5g_sta5_1mb_seed8,nr,5g,5,1mb,8,Video,WiFi mesh,5,28166,26820,95.2212,46.0071,314.0000,5.190488,3
+nr_5g_sta5_1mb_seed8,nr,5g,5,1mb,8,Control,Cellular,5,1930,1864,96.5803,15.3292,110.0000,0.261457,0
+nr_5g_sta5_1mb_seed9,nr,5g,5,1mb,9,Control,WiFi mesh,5,3940,2558,64.9239,33.9133,402.0000,0.358802,2
+nr_5g_sta5_1mb_seed9,nr,5g,5,1mb,9,Sensor,WiFi mesh,5,33308,32722,98.2407,22.8716,337.0000,6.333115,1
+nr_5g_sta5_1mb_seed9,nr,5g,5,1mb,9,Video,WiFi mesh,5,38217,37655,98.5295,23.4418,351.0000,7.288144,2
+nr_5g_sta5_1mb_seed9,nr,5g,5,1mb,9,Control,Cellular,4,970,387,39.8969,18.0165,76.0000,0.054283,2
+nr_5g_sta5_2mb_seed7,nr,5g,5,2mb,7,Control,WiFi mesh,5,3530,1696,48.0453,62.3815,436.0000,0.237892,3
+nr_5g_sta5_2mb_seed7,nr,5g,5,2mb,7,Sensor,WiFi mesh,5,33953,33309,98.1033,28.3526,321.0000,6.446758,2
+nr_5g_sta5_2mb_seed7,nr,5g,5,2mb,7,Video,WiFi mesh,5,52792,51952,98.4088,39.0416,361.0000,10.055857,2
+nr_5g_sta5_2mb_seed7,nr,5g,5,2mb,7,Control,Cellular,5,1380,1071,77.6087,17.5459,133.0000,0.150226,2
+nr_5g_sta5_2mb_seed8,nr,5g,5,2mb,8,Control,WiFi mesh,5,3190,1057,33.1348,67.9780,429.0000,0.148262,4
+nr_5g_sta5_2mb_seed8,nr,5g,5,2mb,8,Sensor,WiFi mesh,5,24883,23656,95.0689,51.6664,418.0000,4.577938,4
+nr_5g_sta5_2mb_seed8,nr,5g,5,2mb,8,Video,WiFi mesh,5,22155,21192,95.6534,40.9653,326.0000,4.100907,4
+nr_5g_sta5_2mb_seed8,nr,5g,5,2mb,8,Control,Cellular,5,1720,1553,90.2907,15.0559,107.0000,0.217834,1
+nr_5g_sta5_2mb_seed9,nr,5g,5,2mb,9,Control,WiFi mesh,5,3270,1960,59.9388,90.7140,623.0000,0.274923,2
+nr_5g_sta5_2mb_seed9,nr,5g,5,2mb,9,Sensor,WiFi mesh,5,41876,40761,97.3374,61.8124,248.0000,7.889466,3
+nr_5g_sta5_2mb_seed9,nr,5g,5,2mb,9,Video,WiFi mesh,5,41742,40672,97.4366,65.2283,249.0000,7.872235,3
+nr_5g_sta5_2mb_seed9,nr,5g,5,2mb,9,Control,Cellular,5,1640,468,28.5366,16.7814,152.0000,0.065645,3
+nr_5g_sta5_50kb_seed7,nr,5g,5,50kb,7,Control,WiFi mesh,5,3980,3765,94.5980,14.9882,501.0000,0.528104,2
+nr_5g_sta5_50kb_seed7,nr,5g,5,50kb,7,Sensor,WiFi mesh,5,19646,19451,99.0074,8.8803,47.0000,3.763850,0
+nr_5g_sta5_50kb_seed7,nr,5g,5,50kb,7,Video,WiFi mesh,5,24359,24215,99.4088,6.8229,32.0000,4.686160,0
+nr_5g_sta5_50kb_seed7,nr,5g,5,50kb,7,Control,Cellular,5,930,758,81.5054,22.3232,150.0000,0.106322,1
+nr_5g_sta5_50kb_seed8,nr,5g,5,50kb,8,Control,WiFi mesh,5,2910,1599,54.9485,27.0359,616.0000,0.224286,5
+nr_5g_sta5_50kb_seed8,nr,5g,5,50kb,8,Sensor,WiFi mesh,5,13194,12832,97.2563,12.5561,134.0000,2.482411,4
+nr_5g_sta5_50kb_seed8,nr,5g,5,50kb,8,Video,WiFi mesh,5,16009,15523,96.9642,11.8886,141.0000,3.003389,3
+nr_5g_sta5_50kb_seed8,nr,5g,5,50kb,8,Control,Cellular,5,2000,1838,91.9000,15.0914,100.0000,0.257810,2
+nr_5g_sta5_50kb_seed9,nr,5g,5,50kb,9,Control,WiFi mesh,5,3480,2845,81.7529,7.5545,133.0000,0.399059,2
+nr_5g_sta5_50kb_seed9,nr,5g,5,50kb,9,Sensor,WiFi mesh,5,15410,15242,98.9098,6.1885,36.0000,2.948987,0
+nr_5g_sta5_50kb_seed9,nr,5g,5,50kb,9,Video,WiFi mesh,5,20018,19831,99.0658,6.6792,36.0000,3.837418,0
+nr_5g_sta5_50kb_seed9,nr,5g,5,50kb,9,Control,Cellular,5,1430,1406,98.3217,18.0234,127.0000,0.197215,0

@@ -58,6 +58,25 @@ build_example(
 )
 
 build_example(
+  NAME traffic-qos
+  SOURCE_FILES traffic_qos.cc
+  LIBRARIES_TO_LINK
+    ${libcore}
+    ${libnetwork}
+    ${libinternet}
+    ${liblte}
+    ${libnr}
+    ${libnr-epc}
+    ${libmesh}
+    ${libwifi}
+    ${libpoint-to-point}
+    ${libapplications}
+    ${libcsma}
+    ${libbuildings}
+    ${libflow-monitor}
+)
+
+build_example(
   NAME 5G-simulation-file
   SOURCE_FILES 5G_simulation_file.cc
   LIBRARIES_TO_LINK

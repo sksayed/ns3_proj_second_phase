@@ -1,0 +1,344 @@
+<title>STA Trajectory Viewer</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 16px; background: #f4f5f7; color: #1c1e21;
+  }
+  h1 { font-size: 1.15rem; margin: 0 0 4px; }
+  .sub { color: #666; font-size: 0.85rem; margin-bottom: 14px; }
+  .layout { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .canvas-wrap {
+    background: white; border-radius: 10px; padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12); position: relative;
+  }
+  canvas { display: block; background: #fbfbfb; border-radius: 6px; cursor: crosshair; }
+  .panel {
+    background: white; border-radius: 10px; padding: 14px; min-width: 260px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12); flex: 1;
+  }
+  .panel h2 { font-size: 0.95rem; margin: 0 0 8px; }
+  .controls {
+    display: flex; align-items: center; gap: 10px; margin: 10px 0 14px;
+    flex-wrap: wrap; background: white; border-radius: 10px; padding: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  button {
+    border: none; background: #2563eb; color: white; padding: 7px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+  }
+  button:hover { background: #1d4ed8; }
+  input[type=range] { flex: 1; min-width: 180px; }
+  select { padding: 4px 6px; border-radius: 6px; border: 1px solid #ccc; }
+  .time-readout { font-variant-numeric: tabular-nums; font-size: 0.85rem; min-width: 110px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; margin: 3px 0; }
+  .swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 0.82rem; margin: 3px 0; }
+  #tooltip {
+    position: absolute; background: rgba(20,20,20,0.92); color: white;
+    padding: 6px 9px; border-radius: 6px; font-size: 0.78rem; pointer-events: none;
+    display: none; white-space: nowrap; z-index: 10;
+  }
+  #eventLog { max-height: 180px; overflow-y: auto; font-size: 0.78rem; margin-top: 6px; }
+  #eventLog div { padding: 2px 0; border-bottom: 1px solid #eee; }
+  .to-wifi { color: #16a34a; }
+  .to-cell { color: #dc2626; }
+  .legend-scroll { max-height: 220px; overflow-y: auto; }
+</style>
+
+<h1>STA Trajectory Viewer</h1>
+<div class="sub">Interactive playback of STA position + WiFi/cellular path over simulation time. Drag the slider or press play.</div>
+
+<div class="controls">
+  <button id="playBtn">▶ Play</button>
+  <input type="range" id="timeSlider" min="0" max="0" value="0" step="1">
+  <span class="time-readout" id="timeReadout">t = 0.0s</span>
+  <select id="speedSelect">
+    <option value="0.5">0.5x</option>
+    <option value="1" selected>1x</option>
+    <option value="2">2x</option>
+    <option value="4">4x</option>
+    <option value="8">8x</option>
+  </select>
+  <label style="font-size:0.82rem; display:flex; align-items:center; gap:4px;">
+    <input type="checkbox" id="trailToggle" checked> trail
+  </label>
+</div>
+
+<div class="layout">
+  <div class="canvas-wrap">
+    <canvas id="mapCanvas" width="760" height="760"></canvas>
+    <div id="tooltip"></div>
+  </div>
+  <div class="panel">
+    <h2>Legend</h2>
+    <div id="legend" class="legend-scroll"></div>
+
+    <h2 style="margin-top:14px;">Live stats</h2>
+    <div class="stat-row"><span>On WiFi</span><span id="statWifi">-</span></div>
+    <div class="stat-row"><span>On cellular</span><span id="statCell">-</span></div>
+
+    <h2 style="margin-top:14px;">Recent switch events</h2>
+    <div id="eventLog"><div style="color:#999;">none yet</div></div>
+  </div>
+</div>
+
+<script>
+const DATA = __TRAJECTORY_DATA__;
+
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+const timeSlider = document.getElementById('timeSlider');
+const timeReadout = document.getElementById('timeReadout');
+const playBtn = document.getElementById('playBtn');
+const speedSelect = document.getElementById('speedSelect');
+const trailToggle = document.getElementById('trailToggle');
+const legendEl = document.getElementById('legend');
+const eventLogEl = document.getElementById('eventLog');
+const statWifi = document.getElementById('statWifi');
+const statCell = document.getElementById('statCell');
+
+const FIELD = DATA.fieldSize;
+const DT = DATA.dt;
+const MAX_T = DATA.maxTime;
+const PAD = 30;
+const SIZE = canvas.width - PAD * 2;
+
+// Flatten (run, sta) into a single ordered list with assigned colors.
+const series = [];
+let colorIdx = 0;
+for (const run of DATA.runs) {
+  for (const sta of run.stas) {
+    const hue = (colorIdx * 137.508) % 360;
+    series.push({
+      runLabel: run.label,
+      staId: sta.id,
+      samples: sta.samples,
+      color: `hsl(${hue}, 65%, 45%)`,
+    });
+    colorIdx++;
+  }
+}
+
+// Merge + sort all switch events across runs, tagging each with its series index.
+const allEvents = [];
+DATA.runs.forEach((run) => {
+  (run.switches || []).forEach((ev) => {
+    const idx = series.findIndex(s => s.runLabel === run.label && s.staId === ev.sta);
+    if (idx >= 0) allEvents.push({ ...ev, seriesIdx: idx });
+  });
+});
+allEvents.sort((a, b) => a.t - b.t);
+
+function fieldToCanvas(x, y) {
+  return [PAD + (x / FIELD) * SIZE, PAD + SIZE - (y / FIELD) * SIZE];
+}
+
+function drawStatic() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#ddd';
+  ctx.lineWidth = 1;
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = '#999';
+  for (let g = 0; g <= FIELD; g += 50) {
+    const [gx, gy0] = fieldToCanvas(g, 0);
+    const [, gy1] = fieldToCanvas(g, FIELD);
+    ctx.beginPath(); ctx.moveTo(gx, gy0); ctx.lineTo(gx, gy1); ctx.stroke();
+    const [gx0, gyv] = fieldToCanvas(0, g);
+    const [gx1] = fieldToCanvas(FIELD, g);
+    ctx.beginPath(); ctx.moveTo(gx0, gyv); ctx.lineTo(gx1, gyv); ctx.stroke();
+    ctx.fillText(g, gx + 2, canvas.height - PAD + 12);
+    ctx.fillText(g, 2, gyv - 2);
+  }
+  // Buildings
+  ctx.fillStyle = 'rgba(120,120,120,0.55)';
+  ctx.strokeStyle = '#555';
+  DATA.buildings.forEach(([x0, x1, y0, y1]) => {
+    const [cx0, cy0] = fieldToCanvas(x0, y1);
+    const [cx1, cy1] = fieldToCanvas(x1, y0);
+    ctx.fillRect(cx0, cy0, cx1 - cx0, cy1 - cy0);
+    ctx.strokeRect(cx0, cy0, cx1 - cx0, cy1 - cy0);
+  });
+  // Mesh APs
+  ctx.fillStyle = '#1e3a8a';
+  DATA.meshAPs.forEach(([ax, ay]) => {
+    const [cx, cy] = fieldToCanvas(ax, ay);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 7); ctx.lineTo(cx - 6, cy + 5); ctx.lineTo(cx + 6, cy + 5);
+    ctx.closePath(); ctx.fill();
+  });
+  ctx.fillStyle = '#333';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('X (m) →', canvas.width - PAD - 50, canvas.height - 8);
+  ctx.save();
+  ctx.translate(10, PAD + 40);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Y (m) →', 0, 0);
+  ctx.restore();
+}
+
+function sampleAt(s, t) {
+  const idx = Math.max(0, Math.min(s.samples.length - 1, Math.round(t / DT)));
+  return s.samples[idx];
+}
+
+let hoverPoint = null;
+
+function render(t) {
+  drawStatic();
+  let wifiCount = 0, cellCount = 0;
+
+  series.forEach((s, i) => {
+    if (!s.samples.length) return;
+    const curIdx = Math.max(0, Math.min(s.samples.length - 1, Math.round(t / DT)));
+
+    if (trailToggle.checked) {
+      const trailLen = 16;
+      for (let k = Math.max(1, curIdx - trailLen); k <= curIdx; k++) {
+        const p0 = s.samples[k - 1], p1 = s.samples[k];
+        if (!p0 || !p1) continue;
+        const alpha = (k - (curIdx - trailLen)) / trailLen;
+        const [ax, ay] = fieldToCanvas(p0.x, p0.y);
+        const [bx, by] = fieldToCanvas(p1.x, p1.y);
+        ctx.strokeStyle = s.color;
+        ctx.globalAlpha = Math.max(0.05, alpha * 0.8);
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    const cur = s.samples[curIdx];
+    const [px, py] = fieldToCanvas(cur.x, cur.y);
+    const isWifi = cur.path === 'wifi';
+    if (isWifi) wifiCount++; else cellCount++;
+
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, 2 * Math.PI);
+    ctx.fillStyle = s.color;
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = isWifi ? '#16a34a' : '#dc2626';
+    ctx.stroke();
+
+    ctx.fillStyle = '#222';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(`${s.staId}`, px + 9, py - 9);
+
+    s._lastPx = px; s._lastPy = py; s._lastCur = cur;
+  });
+
+  // Flash recent switch events
+  allEvents.forEach((ev) => {
+    if (ev.t <= t && t - ev.t < 1.5) {
+      const s = series[ev.seriesIdx];
+      if (!s || s._lastPx === undefined) return;
+      const age = t - ev.t;
+      ctx.beginPath();
+      ctx.arc(s._lastPx, s._lastPy, 10 + age * 10, 0, 2 * Math.PI);
+      ctx.strokeStyle = `rgba(220,38,38,${1 - age / 1.5})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  });
+
+  statWifi.textContent = wifiCount;
+  statCell.textContent = cellCount;
+
+  // Event log: most recent events up to current time
+  const seen = allEvents.filter(e => e.t <= t).slice(-8).reverse();
+  if (seen.length) {
+    eventLogEl.innerHTML = seen.map(e => {
+      const s = series[e.seriesIdx];
+      const cls = e.to && e.to.includes('wifi') ? 'to-wifi' : 'to-cell';
+      const arrow = e.to && e.to.includes('wifi') ? '→ WiFi' : '→ Cellular';
+      return `<div><b>t=${e.t.toFixed(1)}s</b> ${s ? s.runLabel + ' STA ' + s.staId : 'STA ' + e.sta} <span class="${cls}">${arrow}</span></div>`;
+    }).join('');
+  } else {
+    eventLogEl.innerHTML = '<div style="color:#999;">none yet</div>';
+  }
+}
+
+function buildLegend() {
+  legendEl.innerHTML = series.map(s =>
+    `<div class="legend-item"><span class="swatch" style="background:${s.color}"></span>${s.runLabel} STA ${s.staId}</div>`
+  ).join('');
+}
+
+// --- Playback state ---
+let playing = false;
+let currentT = 0;
+let lastFrameTime = null;
+
+timeSlider.max = MAX_T;
+timeSlider.step = DT;
+
+function setTime(t) {
+  currentT = Math.max(0, Math.min(MAX_T, t));
+  timeSlider.value = currentT;
+  timeReadout.textContent = `t = ${currentT.toFixed(1)}s`;
+  render(currentT);
+}
+
+function tick(now) {
+  if (!playing) return;
+  if (lastFrameTime === null) lastFrameTime = now;
+  const deltaS = (now - lastFrameTime) / 1000;
+  lastFrameTime = now;
+  const speed = parseFloat(speedSelect.value);
+  let next = currentT + deltaS * speed;
+  if (next >= MAX_T) {
+    next = MAX_T;
+    playing = false;
+    playBtn.textContent = '▶ Play';
+  }
+  setTime(next);
+  if (playing) requestAnimationFrame(tick);
+}
+
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+  if (playing) {
+    if (currentT >= MAX_T) currentT = 0;
+    lastFrameTime = null;
+    requestAnimationFrame(tick);
+  }
+});
+
+timeSlider.addEventListener('input', () => {
+  playing = false;
+  playBtn.textContent = '▶ Play';
+  setTime(parseFloat(timeSlider.value));
+});
+
+trailToggle.addEventListener('change', () => setTime(currentT));
+
+canvas.addEventListener('mousemove', (evt) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = evt.clientX - rect.left;
+  const my = evt.clientY - rect.top;
+  let closest = null, closestDist = 14;
+  series.forEach((s) => {
+    if (s._lastPx === undefined) return;
+    const d = Math.hypot(mx - s._lastPx, my - s._lastPy);
+    if (d < closestDist) { closestDist = d; closest = s; }
+  });
+  if (closest) {
+    const cur = closest._lastCur;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (mx + 14) + 'px';
+    tooltip.style.top = (my + 6) + 'px';
+    tooltip.innerHTML = `<b>${closest.runLabel} STA ${closest.staId}</b><br>` +
+      `x=${cur.x.toFixed(1)}m, y=${cur.y.toFixed(1)}m<br>path=${cur.path}`;
+  } else {
+    tooltip.style.display = 'none';
+  }
+});
+canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+buildLegend();
+setTime(0);
+</script>

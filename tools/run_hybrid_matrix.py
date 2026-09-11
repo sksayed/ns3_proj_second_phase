@@ -39,6 +39,7 @@ PAYLOAD_TO_BYTES = {
     "10kb": 10 * 1024,
     "50kb": 50 * 1024,
     "1mb": 1 * 1024 * 1024,
+    "2mb": 2 * 1024 * 1024,
 }
 
 
@@ -46,17 +47,16 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
             "Run WiFi-hybrid scenario matrix and parse per-run RSSI/network reports.\n"
-            "Phases:\n"
-            "  screening: sta=[5,10,15], payload=50kb, seed=6, h=[2,3,4], speed=[5,10,15]\n"
-            "  full:      sta=[5,10,15], payload=[10kb,50kb,1mb], seed=[6,7,8], "
-            "h=[best_hysteresis], speed=[5,10,15]"
+            "Phase:\n"
+            "  full: sta=[5,10,15,20,30], payload=[10kb,50kb,1mb,2mb], "
+            "seed=[6,7,8], h=[best_hysteresis], speed=[sta-speed]"
         )
     )
     p.add_argument(
         "--phase",
-        choices=["screening", "full", "both"],
-        default="screening",
-        help="Which matrix phase to run (default: %(default)s).",
+        choices=["full"],
+        default="full",
+        help="Matrix phase to run (default: %(default)s).",
     )
     p.add_argument(
         "--best-hysteresis",
@@ -85,13 +85,19 @@ def parse_args() -> argparse.Namespace:
         help="Simulation time in seconds (default: %(default)s).",
     )
     p.add_argument(
+        "--sta-speed",
+        type=int,
+        default=5,
+        help="STA speed in m/s used for full phase (default: %(default)s).",
+    )
+    p.add_argument(
         "--output-prefix",
         default="Wifi_hybrid_matrix",
         help="Campaign prefix used for generated output folders (default: %(default)s).",
     )
     p.add_argument(
         "--results-root",
-        default="hybrid_test_results",
+        default="hybrid_test_results_updated",
         help=(
             "Primary root directory for all run outputs and summaries "
             "(default: %(default)s)."
@@ -125,24 +131,25 @@ def parse_pdr_thresholds(raw: str) -> List[float]:
     return values
 
 
-def build_screening_scenarios(args: argparse.Namespace) -> List[Scenario]:
+def build_full_scenarios(args: argparse.Namespace) -> List[Scenario]:
     scenarios: List[Scenario] = []
     pdr_thresholds = parse_pdr_thresholds(args.pdr_thresholds)
     for mode in ("lte", "nr"):
         for band in ("2g", "5g"):
-            for sta in (5, 10, 15):
-                for speed in (5, 10, 15):
-                    for h in (2, 3, 4):
+            for sta in (5, 10, 15, 20):
+                speed = args.sta_speed
+                for payload in ("10kb", "50kb", "1mb", "2mb"):
+                    for seed in (6, 7, 8):
                         for pdr in pdr_thresholds:
                             scenarios.append(
                                 Scenario(
-                                    phase="screening",
+                                    phase="full",
                                     mode=mode,
                                     band=band,
                                     sta=sta,
-                                    payload="50kb",
-                                    seed=6,
-                                    hysteresis=h,
+                                    payload=payload,
+                                    seed=seed,
+                                    hysteresis=args.best_hysteresis,
                                     threshold=args.threshold,
                                     pdr_threshold=pdr,
                                     sim_time=args.sim_time,
@@ -152,39 +159,8 @@ def build_screening_scenarios(args: argparse.Namespace) -> List[Scenario]:
     return scenarios
 
 
-def build_full_scenarios(args: argparse.Namespace) -> List[Scenario]:
-    scenarios: List[Scenario] = []
-    pdr_thresholds = parse_pdr_thresholds(args.pdr_thresholds)
-    for mode in ("lte", "nr"):
-        for band in ("2g", "5g"):
-            for sta in (5, 10, 15):
-                for speed in (5, 10, 15):
-                    for payload in ("10kb", "50kb", "1mb"):
-                        for seed in (6, 7, 8):
-                            for pdr in pdr_thresholds:
-                                scenarios.append(
-                                    Scenario(
-                                        phase="full",
-                                        mode=mode,
-                                        band=band,
-                                        sta=sta,
-                                        payload=payload,
-                                        seed=seed,
-                                        hysteresis=args.best_hysteresis,
-                                        threshold=args.threshold,
-                                        pdr_threshold=pdr,
-                                        sim_time=args.sim_time,
-                                        sta_speed_mps=speed,
-                                    )
-                                )
-    return scenarios
-
-
 def iter_scenarios(args: argparse.Namespace) -> Iterable[Scenario]:
-    if args.phase in ("screening", "both"):
-        yield from build_screening_scenarios(args)
-    if args.phase in ("full", "both"):
-        yield from build_full_scenarios(args)
+    yield from build_full_scenarios(args)
 
 
 def count_switch_events(switch_log_path: Path) -> tuple[int, int, int]:
@@ -222,6 +198,7 @@ def run_one(
         f"--cellularMode={sc.mode} "
         f"--hotspotBand={sc.band} "
         "--enableSwitching=1 "
+        "--requireAssocForWifiReturn=true "
         f"--numStaNodes={sc.sta} "
         f"--simTime={sc.sim_time} "
         f"--rssiThresholdDbm={sc.threshold} "

@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <vector>
 #include <array>
 #include <deque>
@@ -394,6 +395,35 @@ CreateSwitchEvent(uint32_t staIndex,
     }
 
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
+
+    // Fix head-of-line blocking: if earlier switches for this STA are still
+    // pending when a new switch is decided, the controller changed the path
+    // before service recovered on the previous decision. Retire those stale
+    // pending events as "superseded" (a terminal state distinct from timeout)
+    // so a single stalled event can no longer strand every switch behind it in
+    // the FIFO. Their interruption is measured up to this new switch's apply
+    // time (that is when the prior decision stopped being the active path).
+    const double nowS = Simulator::Now().GetSeconds();
+    while (!st.pendingSwitchIds.empty())
+    {
+        uint64_t staleId = st.pendingSwitchIds.front();
+        st.pendingSwitchIds.pop_front();
+        auto staleIt = g_switchEventIndex.find(staleId);
+        if (staleIt == g_switchEventIndex.end())
+        {
+            continue;
+        }
+        SwitchEventRecord& stale = g_switchEvents[staleIt->second];
+        if (stale.status != "pending")
+        {
+            continue;
+        }
+        const double baselineS = (stale.lastOkBeforeS >= 0.0) ? stale.lastOkBeforeS
+                                                              : stale.applyTimeS;
+        stale.serviceInterruptionMs = std::max(0.0, (nowS - baselineS) * 1000.0);
+        stale.status = "superseded";
+    }
+
     SwitchEventRecord ev;
     ev.switchId = g_nextSwitchId++;
     ev.staIndex = staIndex;
@@ -466,6 +496,34 @@ HandleServiceSinkRx(uint32_t staIndex, Ptr<const Packet> packet, const Address& 
     HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.rxPackets++;
     st.rxTimes.push_back(Simulator::Now());
+    st.lastServiceRx = Simulator::Now();
+    st.hasLastServiceRx = true;
+    ResolvePendingSwitchOnRx(staIndex, Simulator::Now());
+}
+
+// Control-flow (UDP) liveness for switch resolution.
+//
+// The Sensor TCP flow is a poor liveness probe after a path switch: TCP enters
+// RTO backoff / slow-start when in-flight segments are lost during the route
+// rewrite, so a fully-working new path can still take seconds to produce a TCP
+// sink RX — inflating serviceInterruptionMs and causing false "timeout"s.
+//
+// The Control flow is continuous small UDP (every 50 ms) and recovers on the
+// new path almost immediately, so its server-side RX is the accurate signal for
+// "service has resumed after the switch". This handler updates the liveness
+// baseline and resolves pending switches, but deliberately does NOT touch the
+// PDR sliding window (rxTimes/rxPackets) — UDP is intentionally excluded from
+// PDR to avoid spurious PDR-based switches.
+static void
+HandleControlLivenessRx(uint32_t staIndex, Ptr<const Packet> packet)
+{
+    (void)packet;
+    if (!g_hybridContext.enabled || staIndex >= g_hybridContext.ueStates.size())
+    {
+        return;
+    }
+
+    HybridUeState& st = g_hybridContext.ueStates[staIndex];
     st.lastServiceRx = Simulator::Now();
     st.hasLastServiceRx = true;
     ResolvePendingSwitchOnRx(staIndex, Simulator::Now());
@@ -1073,22 +1131,14 @@ std::vector<Waypoint> BuildRobotWaypointRoute(const std::string& robotType,
         // Box() z-extents in SetupMeshNetwork), so travel between sites
         // reproduces the "elevator shaft" elevation jumps the enhancement
         // plan describes, not just an x/y move.
-        // Ordered by building type interleave, not by building index: the
-        // 4 Residential sites sit at the field's outer x-edges (x=30/370),
-        // well outside the 100-300 mesh-AP square, while Office/Commercial
-        // sites sit inside it. At numStaNodes=5 the old index order (4
-        // Residential + 1 Office) put 4/5 STAs at the worst-covered sites,
-        // making "work" look uniformly bad for a coverage reason unrelated
-        // to the dwell-time behavior under test. Interleaving gives a
-        // 2 Residential / 2 Office / 1 Commercial split at numStaNodes=5.
         std::vector<Vector> workSites = {
-            at(295.0, 36.0, zValue + 9.0),   // beside Commercial cluster50 (18m tall)
-            at(115.0, 312.0, zValue + 7.5),  // beside Office cluster250a (15m tall)
             at(30.0, 90.0, zValue + 5.0),    // beside Residential leftBelow (10m tall)
-            at(210.0, 292.0, zValue + 6.0),  // beside Office cluster250b (12m tall)
-            at(370.0, 290.0, zValue + 5.0),  // beside Residential rightAbove (10m tall)
             at(370.0, 90.0, zValue + 5.0),   // beside Residential rightBelow (10m tall)
             at(30.0, 290.0, zValue + 5.0),   // beside Residential leftAbove (10m tall)
+            at(370.0, 290.0, zValue + 5.0),  // beside Residential rightAbove (10m tall)
+            at(115.0, 312.0, zValue + 7.5),  // beside Office cluster250a (15m tall)
+            at(210.0, 292.0, zValue + 6.0),  // beside Office cluster250b (12m tall)
+            at(295.0, 36.0, zValue + 9.0),   // beside Commercial cluster50 (18m tall)
         };
         Vector prev = workSites[staIndex % workSites.size()];
         route.emplace_back(Seconds(0.0), prev);
@@ -1677,6 +1727,30 @@ void ConfigureStaticRouting(const MeshNetworkConfig& meshConfig,
     serverRouting->SetDefaultRoute(ispRouterIp, serverInterface);
 }
 
+// -----------------------------------------------------------------------------
+// July enhancement: per-flow QoS-separated traffic model.
+//
+// Instead of the generic HTTP/HTTPS/Video/VoIP mix, robot communication is
+// modeled as three flows with distinct QoS requirements and DSCP markings so
+// that FlowMonitor (and flow_metrics.py) can measure each flow independently:
+//
+//   Flow      Transport  Pattern                         DSCP (ToS)
+//   --------  ---------  ------------------------------   ----------------
+//   Control   UDP        small (~1 KB) every 50 ms        EF   (46) -> 0xB8
+//   Sensor    TCP        periodic 100 KB every 200 ms     AF31 (26) -> 0x68
+//   Video     TCP        continuous 5 Mbps stream         AF41 (34) -> 0x88
+//
+// DSCP is applied via the OnOffApplication "Tos" attribute, which the app
+// copies into the socket's IP_TOS field (SetIpTos) at start.
+// -----------------------------------------------------------------------------
+namespace
+{
+// ToS byte = DSCP << 2 (ECN bits left zero).
+constexpr uint8_t QOS_TOS_CONTROL = 46 << 2; // EF
+constexpr uint8_t QOS_TOS_SENSOR = 26 << 2;  // AF31
+constexpr uint8_t QOS_TOS_VIDEO = 34 << 2;   // AF41
+} // namespace
+
 void SetupApplications(const MeshNetworkConfig& meshConfig,
                       const InternetConfig& internetConfig,
                       const HotspotConfig& hotspotConfig,
@@ -1685,122 +1759,129 @@ void SetupApplications(const MeshNetworkConfig& meshConfig,
                       uint32_t packetSize,
                       uint32_t uploadBytes,
                       uint32_t downloadBytes,
-                      uint32_t voipBytes)
+                      uint32_t voipBytes,
+                      double flowScale)
 {
-    NS_LOG_FUNCTION("Setting up applications");
-    
-    const uint16_t httpPort = 80;
-    const uint16_t httpsPort = 443;
-    const uint16_t videoPort = 8080;
-    const uint16_t voipPort = 5060;
-    const uint16_t dnsPort = 53;
-    const uint16_t uploadPortBase = 51000;
-    const uint16_t serviceTcpPortBase = 50000;
-    
-    // Install servers on the internet node (remote host analogue)
-    ApplicationContainer serverApps;
-    PacketSinkHelper httpServer("ns3::TcpSocketFactory",
-                                InetSocketAddress(Ipv4Address::GetAny(), httpPort));
-    serverApps.Add(httpServer.Install(internetConfig.internetNodes.Get(1)));
-    PacketSinkHelper httpsServer("ns3::TcpSocketFactory",
-                                 InetSocketAddress(Ipv4Address::GetAny(), httpsPort));
-    serverApps.Add(httpsServer.Install(internetConfig.internetNodes.Get(1)));
-    PacketSinkHelper videoServer("ns3::TcpSocketFactory",
-                                 InetSocketAddress(Ipv4Address::GetAny(), videoPort));
-    serverApps.Add(videoServer.Install(internetConfig.internetNodes.Get(1)));
-    UdpServerHelper voipServer(voipPort);
-    serverApps.Add(voipServer.Install(internetConfig.internetNodes.Get(1)));
-    UdpServerHelper dnsServer(dnsPort);
-    serverApps.Add(dnsServer.Install(internetConfig.internetNodes.Get(1)));
-    serverApps.Start(Seconds(0.5));
-    serverApps.Stop(Seconds(simTime));
-    
+    NS_LOG_FUNCTION("Setting up QoS-separated applications");
+
+    (void)packetSize;
+    (void)uploadBytes;
+    (void)downloadBytes;
+    (void)voipBytes;
+
+    // Per-flow port bases so FlowMonitor separates the three robot flows.
+    const uint16_t controlPortBase = 52000; // Control commands (UDP)
+    const uint16_t sensorPortBase = 53000;  // Sensor / telemetry (TCP)
+    const uint16_t videoPortBase = 54000;   // Video stream (TCP)
+
+    // Flow parameters (per STA). Control stays fixed (robot-safety traffic).
+    // Sensor/Video rates scale with flowScale so the matrix payload factor
+    // (10kb/50kb/1mb/2mb → 0.1/0.25/1.0/2.0) changes offered load.
+    const double scale = std::max(0.01, flowScale);
+    const uint32_t controlPacketBytes = 1024;      // ~1 KB control command
+    const std::string controlDataRate = "164kbps"; // 1024 B / 50 ms
+    const uint32_t sensorChunkBytes = 100 * 1024;  // 100 KB telemetry burst
+    const uint64_t sensorBps = static_cast<uint64_t>(std::llround(4.0e6 * scale));
+    const std::string sensorDataRate = std::to_string(sensorBps) + "bps";
+    const uint32_t sensorPacketBytes = 1400;
+    const uint64_t videoBps = static_cast<uint64_t>(std::llround(5.0e6 * scale));
+    const std::string videoDataRate = std::to_string(videoBps) + "bps";
+    const uint32_t videoPacketBytes = 1400;
+
+    Ipv4Address serverIp = internetConfig.internetInterfaces.GetAddress(1);
+    Ptr<Node> serverNode = internetConfig.internetNodes.Get(1);
+
     if (!enableHotspot)
     {
         return;
     }
-    
-    const InetSocketAddress voipAddress(internetConfig.internetInterfaces.GetAddress(1), voipPort);
 
     const uint32_t staCount = hotspotConfig.staNodes.GetN();
 
     for (uint32_t i = 0; i < staCount; ++i)
     {
         double baseStart = 10.0 + static_cast<double>(i) * 0.4;
+        uint16_t controlPort = controlPortBase + i;
+        uint16_t sensorPort = sensorPortBase + i;
+        uint16_t videoPort = videoPortBase + i;
 
-        // TCP upload (STA -> server)
-        uint16_t uploadPort = uploadPortBase + i;
-        BulkSendHelper upload("ns3::TcpSocketFactory",
-                              InetSocketAddress(internetConfig.internetInterfaces.GetAddress(1), uploadPort));
-        upload.SetAttribute("MaxBytes", UintegerValue(uploadBytes));
-        upload.SetAttribute("SendSize", UintegerValue(packetSize));
-        ApplicationContainer uploadApp = upload.Install(hotspotConfig.staNodes.Get(i));
-        uploadApp.Start(Seconds(baseStart));
-        uploadApp.Stop(Seconds(simTime));
-        if (uploadApp.GetN() > 0)
+        // --- Control flow (UDP, EF) ------------------------------------------
+        UdpServerHelper controlServer(controlPort);
+        ApplicationContainer controlServerApp = controlServer.Install(serverNode);
+        controlServerApp.Start(Seconds(0.5));
+        controlServerApp.Stop(Seconds(simTime));
+        // Use the continuous Control UDP flow's server RX as the switch-recovery
+        // liveness signal (accurate, fast-recovering; see HandleControlLivenessRx).
+        if (controlServerApp.GetN() > 0)
         {
-            Ptr<Application> app = uploadApp.Get(0);
-            app->TraceConnectWithoutContext("Tx", MakeBoundCallback(&HandleServiceTx, i));
+            controlServerApp.Get(0)->TraceConnectWithoutContext(
+                "Rx", MakeBoundCallback(&HandleControlLivenessRx, i));
         }
 
-        PacketSinkHelper uploadSink("ns3::TcpSocketFactory",
-                                    InetSocketAddress(Ipv4Address::GetAny(), uploadPort));
-        ApplicationContainer uploadSinkApp = uploadSink.Install(internetConfig.internetNodes.Get(1));
-        uploadSinkApp.Start(Seconds(9.5));
-        uploadSinkApp.Stop(Seconds(simTime));
-        Ptr<PacketSink> uploadPacketSink = DynamicCast<PacketSink>(uploadSinkApp.Get(0));
-        if (uploadPacketSink)
+        OnOffHelper controlClient("ns3::UdpSocketFactory",
+                                  InetSocketAddress(serverIp, controlPort));
+        controlClient.SetAttribute("Tos", UintegerValue(QOS_TOS_CONTROL));
+        controlClient.SetAttribute("DataRate", DataRateValue(DataRate(controlDataRate)));
+        controlClient.SetAttribute("PacketSize", UintegerValue(controlPacketBytes));
+        controlClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
+        controlClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
+        ApplicationContainer controlApp = controlClient.Install(hotspotConfig.staNodes.Get(i));
+        controlApp.Start(Seconds(baseStart + 0.1));
+        controlApp.Stop(Seconds(simTime));
+        // Control is UDP fire-and-forget; not tracked in the PDR switch window
+        // (same rationale as the legacy VoIP flow) to avoid spurious switches.
+
+        // --- Sensor / telemetry flow (TCP, AF31) -----------------------------
+        // This TCP flow drives the PDR-based switching window (reliable, steerable
+        // by the same WiFi/cellular host route).
+        OnOffHelper sensorClient("ns3::TcpSocketFactory",
+                                 InetSocketAddress(serverIp, sensorPort));
+        sensorClient.SetAttribute("Tos", UintegerValue(QOS_TOS_SENSOR));
+        sensorClient.SetAttribute("DataRate", DataRateValue(DataRate(sensorDataRate)));
+        sensorClient.SetAttribute("PacketSize", UintegerValue(sensorPacketBytes));
+        sensorClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
+        sensorClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
+        sensorClient.SetAttribute("MaxBytes", UintegerValue(0)); // continuous periodic upload
+        ApplicationContainer sensorApp = sensorClient.Install(hotspotConfig.staNodes.Get(i));
+        sensorApp.Start(Seconds(baseStart + 0.2));
+        sensorApp.Stop(Seconds(simTime));
+        if (sensorApp.GetN() > 0)
         {
-            uploadPacketSink->TraceConnectWithoutContext("Rx",
+            sensorApp.Get(0)->TraceConnectWithoutContext("Tx",
+                                                         MakeBoundCallback(&HandleServiceTx, i));
+        }
+        (void)sensorChunkBytes;
+
+        PacketSinkHelper sensorSink("ns3::TcpSocketFactory",
+                                    InetSocketAddress(Ipv4Address::GetAny(), sensorPort));
+        ApplicationContainer sensorSinkApp = sensorSink.Install(serverNode);
+        sensorSinkApp.Start(Seconds(9.5));
+        sensorSinkApp.Stop(Seconds(simTime));
+        Ptr<PacketSink> sensorPacketSink = DynamicCast<PacketSink>(sensorSinkApp.Get(0));
+        if (sensorPacketSink)
+        {
+            sensorPacketSink->TraceConnectWithoutContext("Rx",
                                                          MakeBoundCallback(&HandleServiceSinkRx, i));
         }
 
-        // UDP VoIP-like upstream traffic
-        OnOffHelper voipClient("ns3::UdpSocketFactory", voipAddress);
-        voipClient.SetAttribute("DataRate", DataRateValue(DataRate("1.5Mbps")));
-        voipClient.SetAttribute("PacketSize", UintegerValue(packetSize));
-        voipClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
-        voipClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
-        voipClient.SetAttribute("MaxBytes", UintegerValue(voipBytes));
-        ApplicationContainer voipApp = voipClient.Install(hotspotConfig.staNodes.Get(i));
-        voipApp.Start(Seconds(baseStart + 0.1));
-        voipApp.Stop(Seconds(simTime));
-        // VoIP TX is intentionally not tracked in HandleServiceTx: VoIP is UDP
-        // (fire-and-forget) while the server-side sink only tracks TCP RX. Including
-        // VoIP TX in the PDR window while excluding its RX would make PDR appear 0%
-        // after TCP uploads finish, causing spurious PDR-based cellular switches.
+        // --- Video flow (TCP, AF41) ------------------------------------------
+        OnOffHelper videoClient("ns3::TcpSocketFactory",
+                                InetSocketAddress(serverIp, videoPort));
+        videoClient.SetAttribute("Tos", UintegerValue(QOS_TOS_VIDEO));
+        videoClient.SetAttribute("DataRate", DataRateValue(DataRate(videoDataRate)));
+        videoClient.SetAttribute("PacketSize", UintegerValue(videoPacketBytes));
+        videoClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
+        videoClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
+        videoClient.SetAttribute("MaxBytes", UintegerValue(0));
+        ApplicationContainer videoApp = videoClient.Install(hotspotConfig.staNodes.Get(i));
+        videoApp.Start(Seconds(baseStart + 0.3));
+        videoApp.Stop(Seconds(simTime));
 
-        // Second TCP service flow (STA -> server). Using service IP keeps this flow
-        // steerable by the same WiFi/LTE host-route switch as upload/VoIP.
-        uint16_t serviceTcpPort = serviceTcpPortBase + i;
-        OnOffHelper serviceTcpClient("ns3::TcpSocketFactory",
-                                     InetSocketAddress(internetConfig.internetInterfaces.GetAddress(1),
-                                                       serviceTcpPort));
-        serviceTcpClient.SetAttribute("DataRate", DataRateValue(DataRate("15Mbps")));
-        serviceTcpClient.SetAttribute("PacketSize", UintegerValue(packetSize));
-        serviceTcpClient.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1.0]"));
-        serviceTcpClient.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0]"));
-        serviceTcpClient.SetAttribute("MaxBytes", UintegerValue(downloadBytes));
-        ApplicationContainer serviceTcpApp = serviceTcpClient.Install(hotspotConfig.staNodes.Get(i));
-        serviceTcpApp.Start(Seconds(baseStart + 0.3));
-        serviceTcpApp.Stop(Seconds(simTime));
-        if (serviceTcpApp.GetN() > 0)
-        {
-            Ptr<Application> app = serviceTcpApp.Get(0);
-            app->TraceConnectWithoutContext("Tx", MakeBoundCallback(&HandleServiceTx, i));
-        }
-
-        PacketSinkHelper serviceTcpSink("ns3::TcpSocketFactory",
-                                        InetSocketAddress(Ipv4Address::GetAny(), serviceTcpPort));
-        ApplicationContainer serviceTcpSinkApp = serviceTcpSink.Install(internetConfig.internetNodes.Get(1));
-        serviceTcpSinkApp.Start(Seconds(9.5));
-        serviceTcpSinkApp.Stop(Seconds(simTime));
-        Ptr<PacketSink> serviceTcpPacketSink = DynamicCast<PacketSink>(serviceTcpSinkApp.Get(0));
-        if (serviceTcpPacketSink)
-        {
-            serviceTcpPacketSink->TraceConnectWithoutContext("Rx",
-                                                             MakeBoundCallback(&HandleServiceSinkRx, i));
-        }
+        PacketSinkHelper videoSink("ns3::TcpSocketFactory",
+                                   InetSocketAddress(Ipv4Address::GetAny(), videoPort));
+        ApplicationContainer videoSinkApp = videoSink.Install(serverNode);
+        videoSinkApp.Start(Seconds(9.5));
+        videoSinkApp.Stop(Seconds(simTime));
     }
 }
 
@@ -3087,7 +3168,8 @@ int main(int argc, char* argv[])
                       packetSize,
                       uploadBytes,
                       downloadBytes,
-                      voipBytes);
+                      voipBytes,
+                      flowScale);
 
     // Start periodic RSSI-based switching after initial association/traffic startup.
     if (enableSwitching && enableHotspot && hotspotConfig.staNodes.GetN() > 0)
