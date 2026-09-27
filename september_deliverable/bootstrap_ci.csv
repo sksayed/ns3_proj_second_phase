@@ -1,0 +1,197 @@
+scope,flow,cellularMode,numStaNodes,kpi,kpi_label,higher_better,n,mean,ci_lo,ci_hi,ci_halfwidth_frac,ci_within_10pct_mean
+overall,ALL,ALL,ALL,pdr_pct,PDR (%),yes,1920,90.264354,89.706089,90.820392,0.006172,yes
+by_mode,ALL,lte,ALL,pdr_pct,PDR (%),yes,960,93.070656,92.609015,93.548254,0.005046,yes
+by_mode,ALL,nr,ALL,pdr_pct,PDR (%),yes,960,87.458052,86.490054,88.426464,0.011071,yes
+by_flow_mode,Control,lte,ALL,pdr_pct,PDR (%),yes,320,85.640406,84.702184,86.580443,0.010966,yes
+by_flow_mode,Control,nr,ALL,pdr_pct,PDR (%),yes,320,67.950844,66.496791,69.435201,0.021622,yes
+by_flow_mode,Sensor,lte,ALL,pdr_pct,PDR (%),yes,320,96.226844,96.079459,96.368419,0.001501,yes
+by_flow_mode,Sensor,nr,ALL,pdr_pct,PDR (%),yes,320,96.733344,96.604788,96.863598,0.001338,yes
+by_flow_mode,Video,lte,ALL,pdr_pct,PDR (%),yes,320,97.344719,97.232134,97.467352,0.001208,yes
+by_flow_mode,Video,nr,ALL,pdr_pct,PDR (%),yes,320,97.689969,97.575522,97.787350,0.001084,yes
+by_sta,ALL,ALL,5,pdr_pct,PDR (%),yes,480,91.785896,90.560574,92.899417,0.012741,yes
+by_sta,ALL,ALL,10,pdr_pct,PDR (%),yes,480,90.914396,89.796434,91.953723,0.011864,yes
+by_sta,ALL,ALL,15,pdr_pct,PDR (%),yes,480,88.815292,87.518842,90.014733,0.014051,yes
+by_sta,ALL,ALL,20,pdr_pct,PDR (%),yes,480,89.541833,88.452701,90.558903,0.011761,yes
+by_flow_sta,Control,ALL,5,pdr_pct,PDR (%),yes,160,79.952313,77.489581,82.614744,0.032051,yes
+by_flow_sta,Control,ALL,10,pdr_pct,PDR (%),yes,160,78.295375,76.037297,80.284266,0.027121,yes
+by_flow_sta,Control,ALL,15,pdr_pct,PDR (%),yes,160,72.937000,71.036366,75.123061,0.028015,yes
+by_flow_sta,Control,ALL,20,pdr_pct,PDR (%),yes,160,75.997813,74.429220,77.589667,0.020793,yes
+by_flow_sta,Sensor,ALL,5,pdr_pct,PDR (%),yes,160,97.367875,97.204230,97.526391,0.001654,yes
+by_flow_sta,Sensor,ALL,10,pdr_pct,PDR (%),yes,160,96.761375,96.620098,96.917580,0.001537,yes
+by_flow_sta,Sensor,ALL,15,pdr_pct,PDR (%),yes,160,96.173500,95.986425,96.376955,0.002030,yes
+by_flow_sta,Sensor,ALL,20,pdr_pct,PDR (%),yes,160,95.617625,95.419806,95.821775,0.002102,yes
+by_flow_sta,Video,ALL,5,pdr_pct,PDR (%),yes,160,98.037500,97.871938,98.196573,0.001656,yes
+by_flow_sta,Video,ALL,10,pdr_pct,PDR (%),yes,160,97.686437,97.553422,97.816952,0.001349,yes
+by_flow_sta,Video,ALL,15,pdr_pct,PDR (%),yes,160,97.335375,97.182550,97.486581,0.001562,yes
+by_flow_sta,Video,ALL,20,pdr_pct,PDR (%),yes,160,97.010063,96.881889,97.138878,0.001325,yes
+by_flow_mode_sta,Control,lte,5,pdr_pct,PDR (%),yes,80,89.144875,86.811041,91.232178,0.024797,yes
+by_flow_mode_sta,Control,lte,10,pdr_pct,PDR (%),yes,80,87.354000,85.623013,88.808931,0.018236,yes
+by_flow_mode_sta,Control,lte,15,pdr_pct,PDR (%),yes,80,82.394500,80.454866,84.105087,0.022151,yes
+by_flow_mode_sta,Control,lte,20,pdr_pct,PDR (%),yes,80,83.668250,82.406556,84.862634,0.014677,yes
+by_flow_mode_sta,Control,nr,5,pdr_pct,PDR (%),yes,80,70.759750,66.880966,74.827891,0.056154,yes
+by_flow_mode_sta,Control,nr,10,pdr_pct,PDR (%),yes,80,69.236750,66.749200,71.824147,0.036649,yes
+by_flow_mode_sta,Control,nr,15,pdr_pct,PDR (%),yes,80,63.479500,61.161953,65.752847,0.036160,yes
+by_flow_mode_sta,Control,nr,20,pdr_pct,PDR (%),yes,80,68.327375,66.864541,69.874875,0.022029,yes
+by_flow_mode_sta,Sensor,lte,5,pdr_pct,PDR (%),yes,80,97.367500,97.165119,97.572428,0.002092,yes
+by_flow_mode_sta,Sensor,lte,10,pdr_pct,PDR (%),yes,80,96.604250,96.415469,96.781012,0.001892,yes
+by_flow_mode_sta,Sensor,lte,15,pdr_pct,PDR (%),yes,80,95.758500,95.478725,96.035381,0.002907,yes
+by_flow_mode_sta,Sensor,lte,20,pdr_pct,PDR (%),yes,80,95.177125,94.912597,95.424063,0.002687,yes
+by_flow_mode_sta,Sensor,nr,5,pdr_pct,PDR (%),yes,80,97.368250,97.111434,97.606538,0.002542,yes
+by_flow_mode_sta,Sensor,nr,10,pdr_pct,PDR (%),yes,80,96.918500,96.713928,97.119925,0.002095,yes
+by_flow_mode_sta,Sensor,nr,15,pdr_pct,PDR (%),yes,80,96.588500,96.344072,96.833534,0.002534,yes
+by_flow_mode_sta,Sensor,nr,20,pdr_pct,PDR (%),yes,80,96.058125,95.757344,96.319194,0.002925,yes
+by_flow_mode_sta,Video,lte,5,pdr_pct,PDR (%),yes,80,98.043375,97.795853,98.263903,0.002387,yes
+by_flow_mode_sta,Video,lte,10,pdr_pct,PDR (%),yes,80,97.539375,97.355091,97.711000,0.001824,yes
+by_flow_mode_sta,Video,lte,15,pdr_pct,PDR (%),yes,80,97.081250,96.892488,97.291653,0.002056,yes
+by_flow_mode_sta,Video,lte,20,pdr_pct,PDR (%),yes,80,96.714875,96.549578,96.878253,0.001699,yes
+by_flow_mode_sta,Video,nr,5,pdr_pct,PDR (%),yes,80,98.031625,97.794697,98.274178,0.002446,yes
+by_flow_mode_sta,Video,nr,10,pdr_pct,PDR (%),yes,80,97.833500,97.658747,98.000381,0.001746,yes
+by_flow_mode_sta,Video,nr,15,pdr_pct,PDR (%),yes,80,97.589500,97.368713,97.801531,0.002218,yes
+by_flow_mode_sta,Video,nr,20,pdr_pct,PDR (%),yes,80,97.305250,97.142425,97.487512,0.001773,yes
+overall,ALL,ALL,ALL,mean_delay_ms,Mean delay (ms),no,1920,26.375203,25.519454,27.174242,0.031370,yes
+by_mode,ALL,lte,ALL,mean_delay_ms,Mean delay (ms),no,960,32.980281,31.864910,34.158700,0.034775,yes
+by_mode,ALL,nr,ALL,mean_delay_ms,Mean delay (ms),no,960,19.770125,18.941688,20.627930,0.042646,yes
+by_flow_mode,Control,lte,ALL,mean_delay_ms,Mean delay (ms),no,320,42.919281,40.505049,45.275289,0.055572,yes
+by_flow_mode,Control,nr,ALL,mean_delay_ms,Mean delay (ms),no,320,17.344531,16.346675,18.346399,0.057647,yes
+by_flow_mode,Sensor,lte,ALL,mean_delay_ms,Mean delay (ms),no,320,31.801594,29.977485,33.596343,0.056897,yes
+by_flow_mode,Sensor,nr,ALL,mean_delay_ms,Mean delay (ms),no,320,24.128125,22.310355,26.023748,0.076952,yes
+by_flow_mode,Video,lte,ALL,mean_delay_ms,Mean delay (ms),no,320,24.219969,22.974591,25.505983,0.052258,yes
+by_flow_mode,Video,nr,ALL,mean_delay_ms,Mean delay (ms),no,320,17.837719,16.293944,19.376522,0.086406,yes
+by_sta,ALL,ALL,5,mean_delay_ms,Mean delay (ms),no,480,21.520646,20.153588,23.085791,0.068125,yes
+by_sta,ALL,ALL,10,mean_delay_ms,Mean delay (ms),no,480,24.234812,22.841415,25.581490,0.056532,yes
+by_sta,ALL,ALL,15,mean_delay_ms,Mean delay (ms),no,480,29.150687,27.409669,30.852761,0.059057,yes
+by_sta,ALL,ALL,20,mean_delay_ms,Mean delay (ms),no,480,30.594667,28.987810,32.151159,0.051698,yes
+by_flow_sta,Control,ALL,5,mean_delay_ms,Mean delay (ms),no,160,22.542687,20.312289,25.283939,0.110272,no
+by_flow_sta,Control,ALL,10,mean_delay_ms,Mean delay (ms),no,160,26.788187,24.096959,29.587348,0.102478,no
+by_flow_sta,Control,ALL,15,mean_delay_ms,Mean delay (ms),no,160,34.579313,31.165728,38.374708,0.104238,no
+by_flow_sta,Control,ALL,20,mean_delay_ms,Mean delay (ms),no,160,36.617437,32.932553,40.388705,0.101811,no
+by_flow_sta,Sensor,ALL,5,mean_delay_ms,Mean delay (ms),no,160,23.194188,20.333803,25.864273,0.119221,no
+by_flow_sta,Sensor,ALL,10,mean_delay_ms,Mean delay (ms),no,160,25.920625,23.408150,28.275809,0.093895,yes
+by_flow_sta,Sensor,ALL,15,mean_delay_ms,Mean delay (ms),no,160,30.769938,27.944709,33.784420,0.094893,yes
+by_flow_sta,Sensor,ALL,20,mean_delay_ms,Mean delay (ms),no,160,31.974688,29.293066,34.508041,0.081548,yes
+by_flow_sta,Video,ALL,5,mean_delay_ms,Mean delay (ms),no,160,18.825062,16.482156,21.318520,0.128455,no
+by_flow_sta,Video,ALL,10,mean_delay_ms,Mean delay (ms),no,160,19.995625,18.211394,21.837247,0.090666,yes
+by_flow_sta,Video,ALL,15,mean_delay_ms,Mean delay (ms),no,160,22.102812,20.308698,23.933820,0.082006,yes
+by_flow_sta,Video,ALL,20,mean_delay_ms,Mean delay (ms),no,160,23.191875,21.523463,25.057736,0.076196,yes
+by_flow_mode_sta,Control,lte,5,mean_delay_ms,Mean delay (ms),no,80,28.157875,24.253825,32.385391,0.144392,no
+by_flow_mode_sta,Control,lte,10,mean_delay_ms,Mean delay (ms),no,80,36.860125,33.078828,40.562541,0.101515,no
+by_flow_mode_sta,Control,lte,15,mean_delay_ms,Mean delay (ms),no,80,50.508375,45.902806,55.233984,0.092373,yes
+by_flow_mode_sta,Control,lte,20,mean_delay_ms,Mean delay (ms),no,80,56.150750,52.739413,60.063075,0.065214,yes
+by_flow_mode_sta,Control,nr,5,mean_delay_ms,Mean delay (ms),no,80,16.927500,14.548437,19.310609,0.140664,no
+by_flow_mode_sta,Control,nr,10,mean_delay_ms,Mean delay (ms),no,80,16.716250,14.921469,18.761156,0.114849,no
+by_flow_mode_sta,Control,nr,15,mean_delay_ms,Mean delay (ms),no,80,18.650250,16.224459,21.113003,0.131058,no
+by_flow_mode_sta,Control,nr,20,mean_delay_ms,Mean delay (ms),no,80,17.084125,15.677487,18.568803,0.084620,yes
+by_flow_mode_sta,Sensor,lte,5,mean_delay_ms,Mean delay (ms),no,80,23.505625,20.283538,26.943841,0.141675,no
+by_flow_mode_sta,Sensor,lte,10,mean_delay_ms,Mean delay (ms),no,80,29.844125,26.854112,33.243275,0.107042,no
+by_flow_mode_sta,Sensor,lte,15,mean_delay_ms,Mean delay (ms),no,80,34.856500,31.767669,38.185744,0.092064,yes
+by_flow_mode_sta,Sensor,lte,20,mean_delay_ms,Mean delay (ms),no,80,39.000125,35.839050,42.138928,0.080767,yes
+by_flow_mode_sta,Sensor,nr,5,mean_delay_ms,Mean delay (ms),no,80,22.882750,18.868591,27.530684,0.189271,no
+by_flow_mode_sta,Sensor,nr,10,mean_delay_ms,Mean delay (ms),no,80,21.997125,19.008219,25.521559,0.148050,no
+by_flow_mode_sta,Sensor,nr,15,mean_delay_ms,Mean delay (ms),no,80,26.683375,22.922594,31.141937,0.154016,no
+by_flow_mode_sta,Sensor,nr,20,mean_delay_ms,Mean delay (ms),no,80,24.949250,22.020028,28.442166,0.128704,no
+by_flow_mode_sta,Video,lte,5,mean_delay_ms,Mean delay (ms),no,80,19.263500,16.094188,22.670703,0.170699,no
+by_flow_mode_sta,Video,lte,10,mean_delay_ms,Mean delay (ms),no,80,22.673875,20.307222,25.100781,0.105707,no
+by_flow_mode_sta,Video,lte,15,mean_delay_ms,Mean delay (ms),no,80,25.697750,23.641522,27.887263,0.082609,yes
+by_flow_mode_sta,Video,lte,20,mean_delay_ms,Mean delay (ms),no,80,29.244750,27.081525,31.527972,0.076021,yes
+by_flow_mode_sta,Video,nr,5,mean_delay_ms,Mean delay (ms),no,80,18.386625,14.724059,22.263909,0.205036,no
+by_flow_mode_sta,Video,nr,10,mean_delay_ms,Mean delay (ms),no,80,17.317375,14.889069,20.047794,0.148947,no
+by_flow_mode_sta,Video,nr,15,mean_delay_ms,Mean delay (ms),no,80,18.507875,15.765309,21.720128,0.160873,no
+by_flow_mode_sta,Video,nr,20,mean_delay_ms,Mean delay (ms),no,80,17.139000,15.097684,19.331384,0.123511,no
+overall,ALL,ALL,ALL,throughput_mbps,Throughput (Mbps),yes,1920,6.678744,6.414871,6.944922,0.039682,yes
+by_mode,ALL,lte,ALL,throughput_mbps,Throughput (Mbps),yes,960,6.585678,6.255860,6.902640,0.049105,yes
+by_mode,ALL,nr,ALL,throughput_mbps,Throughput (Mbps),yes,960,6.771810,6.381096,7.183600,0.059253,yes
+by_flow_mode,Control,lte,ALL,throughput_mbps,Throughput (Mbps),yes,320,1.397456,1.328061,1.463756,0.048551,yes
+by_flow_mode,Control,nr,ALL,throughput_mbps,Throughput (Mbps),yes,320,1.111772,1.057944,1.167205,0.049138,yes
+by_flow_mode,Sensor,lte,ALL,throughput_mbps,Throughput (Mbps),yes,320,7.712500,7.256780,8.192844,0.060685,yes
+by_flow_mode,Sensor,nr,ALL,throughput_mbps,Throughput (Mbps),yes,320,8.169187,7.586266,8.727084,0.069824,yes
+by_flow_mode,Video,lte,ALL,throughput_mbps,Throughput (Mbps),yes,320,10.647078,10.136936,11.240040,0.051803,yes
+by_flow_mode,Video,nr,ALL,throughput_mbps,Throughput (Mbps),yes,320,11.034472,10.299487,11.825849,0.069163,yes
+by_sta,ALL,ALL,5,throughput_mbps,Throughput (Mbps),yes,480,4.103217,3.775089,4.419722,0.078552,yes
+by_sta,ALL,ALL,10,throughput_mbps,Throughput (Mbps),yes,480,6.265852,5.798334,6.699572,0.071917,yes
+by_sta,ALL,ALL,15,throughput_mbps,Throughput (Mbps),yes,480,7.651208,7.073649,8.261016,0.077593,yes
+by_sta,ALL,ALL,20,throughput_mbps,Throughput (Mbps),yes,480,8.694700,8.068494,9.272151,0.069218,yes
+by_flow_sta,Control,ALL,5,throughput_mbps,Throughput (Mbps),yes,160,0.550706,0.531162,0.568848,0.034216,yes
+by_flow_sta,Control,ALL,10,throughput_mbps,Throughput (Mbps),yes,160,1.056469,1.028490,1.083668,0.026114,yes
+by_flow_sta,Control,ALL,15,throughput_mbps,Throughput (Mbps),yes,160,1.445612,1.401792,1.488288,0.029917,yes
+by_flow_sta,Control,ALL,20,throughput_mbps,Throughput (Mbps),yes,160,1.965669,1.925544,2.006507,0.020594,yes
+by_flow_sta,Sensor,ALL,5,throughput_mbps,Throughput (Mbps),yes,160,5.297137,4.805317,5.824771,0.096227,yes
+by_flow_sta,Sensor,ALL,10,throughput_mbps,Throughput (Mbps),yes,160,7.606306,6.978511,8.268819,0.084818,yes
+by_flow_sta,Sensor,ALL,15,throughput_mbps,Throughput (Mbps),yes,160,8.929025,8.153863,9.707022,0.086972,yes
+by_flow_sta,Sensor,ALL,20,throughput_mbps,Throughput (Mbps),yes,160,9.930906,9.095034,10.788348,0.085255,yes
+by_flow_sta,Video,ALL,5,throughput_mbps,Throughput (Mbps),yes,160,6.461806,5.959305,6.975554,0.078635,yes
+by_flow_sta,Video,ALL,10,throughput_mbps,Throughput (Mbps),yes,160,10.134781,9.446315,10.808364,0.067197,yes
+by_flow_sta,Video,ALL,15,throughput_mbps,Throughput (Mbps),yes,160,12.578988,11.605228,13.425912,0.072370,yes
+by_flow_sta,Video,ALL,20,throughput_mbps,Throughput (Mbps),yes,160,14.187525,13.237295,15.164639,0.067924,yes
+by_flow_mode_sta,Control,lte,5,throughput_mbps,Throughput (Mbps),yes,80,0.614013,0.597859,0.626394,0.023236,yes
+by_flow_mode_sta,Control,lte,10,throughput_mbps,Throughput (Mbps),yes,80,1.178700,1.155343,1.199390,0.018685,yes
+by_flow_mode_sta,Control,lte,15,throughput_mbps,Throughput (Mbps),yes,80,1.633050,1.595693,1.667862,0.022096,yes
+by_flow_mode_sta,Control,lte,20,throughput_mbps,Throughput (Mbps),yes,80,2.164062,2.132946,2.196091,0.014589,yes
+by_flow_mode_sta,Control,nr,5,throughput_mbps,Throughput (Mbps),yes,80,0.487400,0.458411,0.513305,0.056313,yes
+by_flow_mode_sta,Control,nr,10,throughput_mbps,Throughput (Mbps),yes,80,0.934238,0.900117,0.967534,0.036082,yes
+by_flow_mode_sta,Control,nr,15,throughput_mbps,Throughput (Mbps),yes,80,1.258175,1.212356,1.302828,0.035954,yes
+by_flow_mode_sta,Control,nr,20,throughput_mbps,Throughput (Mbps),yes,80,1.767275,1.726387,1.807581,0.022972,yes
+by_flow_mode_sta,Sensor,lte,5,throughput_mbps,Throughput (Mbps),yes,80,5.734450,5.048697,6.494048,0.126024,no
+by_flow_mode_sta,Sensor,lte,10,throughput_mbps,Throughput (Mbps),yes,80,7.646212,6.806242,8.538317,0.113264,no
+by_flow_mode_sta,Sensor,lte,15,throughput_mbps,Throughput (Mbps),yes,80,8.518137,7.530124,9.587824,0.120783,no
+by_flow_mode_sta,Sensor,lte,20,throughput_mbps,Throughput (Mbps),yes,80,8.951200,8.025931,9.919923,0.105795,no
+by_flow_mode_sta,Sensor,nr,5,throughput_mbps,Throughput (Mbps),yes,80,4.859825,4.192829,5.511688,0.135690,no
+by_flow_mode_sta,Sensor,nr,10,throughput_mbps,Throughput (Mbps),yes,80,7.566400,6.581433,8.575153,0.131748,no
+by_flow_mode_sta,Sensor,nr,15,throughput_mbps,Throughput (Mbps),yes,80,9.339913,8.176684,10.559240,0.127547,no
+by_flow_mode_sta,Sensor,nr,20,throughput_mbps,Throughput (Mbps),yes,80,10.910612,9.633324,12.192136,0.117263,no
+by_flow_mode_sta,Video,lte,5,throughput_mbps,Throughput (Mbps),yes,80,6.989025,6.271646,7.692864,0.101675,no
+by_flow_mode_sta,Video,lte,10,throughput_mbps,Throughput (Mbps),yes,80,10.391775,9.476692,11.390719,0.092093,yes
+by_flow_mode_sta,Video,lte,15,throughput_mbps,Throughput (Mbps),yes,80,12.253063,11.051553,13.509611,0.100304,no
+by_flow_mode_sta,Video,lte,20,throughput_mbps,Throughput (Mbps),yes,80,12.954450,11.817406,14.183979,0.091342,yes
+by_flow_mode_sta,Video,nr,5,throughput_mbps,Throughput (Mbps),yes,80,5.934588,5.265487,6.666377,0.118028,no
+by_flow_mode_sta,Video,nr,10,throughput_mbps,Throughput (Mbps),yes,80,9.877788,8.917492,10.977979,0.104299,no
+by_flow_mode_sta,Video,nr,15,throughput_mbps,Throughput (Mbps),yes,80,12.904913,11.553656,14.229080,0.103659,no
+by_flow_mode_sta,Video,nr,20,throughput_mbps,Throughput (Mbps),yes,80,15.420600,14.042254,17.016697,0.096444,yes
+overall,ALL,ALL,ALL,p99_ms,P99 delay (ms),no,1920,204.045833,196.079206,212.317292,0.039790,yes
+by_mode,ALL,lte,ALL,p99_ms,P99 delay (ms),no,960,257.917708,244.169062,272.579193,0.055076,yes
+by_mode,ALL,nr,ALL,p99_ms,P99 delay (ms),no,960,150.173958,143.376536,157.429453,0.046789,yes
+by_flow_mode,Control,lte,ALL,p99_ms,P99 delay (ms),no,320,452.515625,423.041094,480.627422,0.063629,yes
+by_flow_mode,Control,nr,ALL,p99_ms,P99 delay (ms),no,320,168.515625,156.876172,179.800859,0.068019,yes
+by_flow_mode,Sensor,lte,ALL,p99_ms,P99 delay (ms),no,320,183.112500,171.949766,193.530000,0.058926,yes
+by_flow_mode,Sensor,nr,ALL,p99_ms,P99 delay (ms),no,320,161.853125,149.754375,174.097031,0.075200,yes
+by_flow_mode,Video,lte,ALL,p99_ms,P99 delay (ms),no,320,138.125000,129.970156,146.678594,0.060483,yes
+by_flow_mode,Video,nr,ALL,p99_ms,P99 delay (ms),no,320,120.153125,110.128984,129.782656,0.081786,yes
+by_sta,ALL,ALL,5,p99_ms,P99 delay (ms),no,480,142.316667,132.374010,153.545000,0.074380,yes
+by_sta,ALL,ALL,10,p99_ms,P99 delay (ms),no,480,191.197917,177.229115,204.974323,0.072556,yes
+by_sta,ALL,ALL,15,p99_ms,P99 delay (ms),no,480,229.606250,212.642865,245.934167,0.072497,yes
+by_sta,ALL,ALL,20,p99_ms,P99 delay (ms),no,480,253.062500,234.630000,273.601719,0.077000,yes
+by_flow_sta,Control,ALL,5,p99_ms,P99 delay (ms),no,160,190.625000,166.122344,215.407344,0.129272,no
+by_flow_sta,Control,ALL,10,p99_ms,P99 delay (ms),no,160,275.837500,244.611719,307.828438,0.114591,no
+by_flow_sta,Control,ALL,15,p99_ms,P99 delay (ms),no,160,356.437500,320.223125,394.531250,0.104237,no
+by_flow_sta,Control,ALL,20,p99_ms,P99 delay (ms),no,160,419.162500,375.666094,464.897812,0.106440,no
+by_flow_sta,Sensor,ALL,5,p99_ms,P99 delay (ms),no,160,127.668750,113.567500,143.170156,0.115935,no
+by_flow_sta,Sensor,ALL,10,p99_ms,P99 delay (ms),no,160,168.825000,153.379844,184.145313,0.091116,yes
+by_flow_sta,Sensor,ALL,15,p99_ms,P99 delay (ms),no,160,194.131250,177.061250,211.227969,0.087999,yes
+by_flow_sta,Sensor,ALL,20,p99_ms,P99 delay (ms),no,160,199.306250,183.785625,214.512656,0.077085,yes
+by_flow_sta,Video,ALL,5,p99_ms,P99 delay (ms),no,160,108.656250,95.367031,123.008437,0.127197,no
+by_flow_sta,Video,ALL,10,p99_ms,P99 delay (ms),no,160,128.931250,116.309531,143.522344,0.105532,no
+by_flow_sta,Video,ALL,15,p99_ms,P99 delay (ms),no,160,138.250000,125.214219,152.029063,0.096980,yes
+by_flow_sta,Video,ALL,20,p99_ms,P99 delay (ms),no,160,140.718750,128.623594,154.114844,0.090575,yes
+by_flow_mode_sta,Control,lte,5,p99_ms,P99 delay (ms),no,80,230.975000,190.770938,270.448750,0.172481,no
+by_flow_mode_sta,Control,lte,10,p99_ms,P99 delay (ms),no,80,384.925000,338.360625,432.253125,0.121962,no
+by_flow_mode_sta,Control,lte,15,p99_ms,P99 delay (ms),no,80,528.200000,481.028750,574.668750,0.088641,yes
+by_flow_mode_sta,Control,lte,20,p99_ms,P99 delay (ms),no,80,665.962500,617.727500,708.534375,0.068177,yes
+by_flow_mode_sta,Control,nr,5,p99_ms,P99 delay (ms),no,80,150.275000,127.147813,174.665000,0.158101,no
+by_flow_mode_sta,Control,nr,10,p99_ms,P99 delay (ms),no,80,166.750000,145.598750,190.016562,0.133187,no
+by_flow_mode_sta,Control,nr,15,p99_ms,P99 delay (ms),no,80,184.675000,158.574375,214.997500,0.152763,no
+by_flow_mode_sta,Control,nr,20,p99_ms,P99 delay (ms),no,80,172.362500,150.360938,194.676563,0.128554,no
+by_flow_mode_sta,Sensor,lte,5,p99_ms,P99 delay (ms),no,80,129.212500,109.319063,148.288750,0.150797,no
+by_flow_mode_sta,Sensor,lte,10,p99_ms,P99 delay (ms),no,80,183.175000,160.374375,206.631563,0.126265,no
+by_flow_mode_sta,Sensor,lte,15,p99_ms,P99 delay (ms),no,80,207.050000,186.523438,228.101562,0.100406,no
+by_flow_mode_sta,Sensor,lte,20,p99_ms,P99 delay (ms),no,80,213.012500,193.023125,233.589687,0.095221,yes
+by_flow_mode_sta,Sensor,nr,5,p99_ms,P99 delay (ms),no,80,126.125000,104.311875,149.503125,0.179153,no
+by_flow_mode_sta,Sensor,nr,10,p99_ms,P99 delay (ms),no,80,154.475000,131.318125,178.726250,0.153449,no
+by_flow_mode_sta,Sensor,nr,15,p99_ms,P99 delay (ms),no,80,181.212500,155.531875,209.240000,0.148191,no
+by_flow_mode_sta,Sensor,nr,20,p99_ms,P99 delay (ms),no,80,185.600000,162.520625,208.593437,0.124119,no
+by_flow_mode_sta,Video,lte,5,p99_ms,P99 delay (ms),no,80,110.087500,93.204688,128.025937,0.158153,no
+by_flow_mode_sta,Video,lte,10,p99_ms,P99 delay (ms),no,80,142.475000,123.804375,162.090937,0.134362,no
+by_flow_mode_sta,Video,lte,15,p99_ms,P99 delay (ms),no,80,146.875000,132.497500,162.664375,0.102696,no
+by_flow_mode_sta,Video,lte,20,p99_ms,P99 delay (ms),no,80,153.062500,139.049688,168.652187,0.096701,yes
+by_flow_mode_sta,Video,nr,5,p99_ms,P99 delay (ms),no,80,107.225000,86.199062,127.732187,0.193673,no
+by_flow_mode_sta,Video,nr,10,p99_ms,P99 delay (ms),no,80,115.387500,95.255625,134.900625,0.171791,no
+by_flow_mode_sta,Video,nr,15,p99_ms,P99 delay (ms),no,80,129.625000,106.773750,153.537187,0.180380,no
+by_flow_mode_sta,Video,nr,20,p99_ms,P99 delay (ms),no,80,128.375000,107.935000,149.320312,0.161189,no

@@ -1,0 +1,8 @@
+scope,cellularMode,numStaNodes,kpi,n_resolved,mean_ms,ci_lo_ms,ci_hi_ms,ci_halfwidth_frac,pct_le_200ms
+overall,ALL,ALL,service_interruption_ms,24728,998.469769,958.297627,1041.149045,0.041489,81.179
+mode_lte,lte,ALL,service_interruption_ms,12910,557.082846,527.397178,590.160587,0.056332,85.492
+mode_nr,nr,ALL,service_interruption_ms,11818,1480.641471,1407.054950,1553.444223,0.049434,76.468
+sta_5,ALL,5,service_interruption_ms,2024,1017.557126,855.499684,1189.420947,0.164080,82.411
+sta_10,ALL,10,service_interruption_ms,5136,1096.052307,1007.457228,1184.048245,0.080558,78.271
+sta_15,ALL,15,service_interruption_ms,7214,1062.273143,984.729824,1144.294113,0.075105,80.566
+sta_20,ALL,20,service_interruption_ms,10354,901.879632,844.124839,954.208857,0.061030,82.809
